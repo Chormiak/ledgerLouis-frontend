@@ -3,9 +3,9 @@ import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
-  <!-- <RouterView /> -->
+  <RouterView />
 </template>
 
 <style scoped>
-/* Recomendo usar grid para a criação dos layouts */
+/* Recomendo usar grid para a criação dos layouts - William */
 </style>
