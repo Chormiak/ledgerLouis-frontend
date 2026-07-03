@@ -117,8 +117,7 @@ const handleCancel = () => {
             >
           </div>
         </div>
-        
-        
+         
         <div class="form-group">
           <label class="form-label">Categoria</label>
           <div class="select-wrapper">
