@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch, onUnmounted } from 'vue';
 import type { RecurringExpenseDistribution } from '@/types/CompanyTypes';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import { useRecurringExpenseStore } from '@/stores/recurringExpenseStore';
@@ -36,6 +36,19 @@ const resetForm = () => {
   formData.endDate = '';
   showForm.value = false;
 };
+
+const handleCloseForm = () => {
+  resetForm();
+  message.show = false;
+};
+
+watch(showForm, (isOpen) => {
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+});
+
+onUnmounted(() => {
+  document.body.style.overflow = '';
+});
 
 const handleCreateExpense = async () => {
   if (!formData.description.trim()) {
@@ -83,8 +96,8 @@ const handleCreateExpense = async () => {
     message.text = 'Despesa recorrente criada com sucesso!';
     message.show = true;
 
+    resetForm();
     setTimeout(() => {
-      resetForm();
       message.show = false;
     }, 2000);
 
@@ -117,104 +130,18 @@ export default {
   <div class="recurring-manager">
     <div class="manager-header">
       <h3>Distribuição de Despesas Recorrentes</h3>
-      <button class="btn-add" @click="showForm = !showForm" v-if="!showForm">
+      <button class="btn-add" @click="showForm = true">
         <Plus size="18" />
         Nova Despesa
       </button>
     </div>
 
-    <!-- Mensagem de feedback -->
     <div v-if="message.show" class="message" :class="message.status">
       {{ message.text }}
     </div>
 
-    <!-- Formulário de criar despesa recorrente -->
-    <div v-if="showForm" class="form-container">
-      <h4>Adicionar Despesa Recorrente</h4>
-      
-      <div class="form-group">
-        <label>Nome da Conta *</label>
-        <input 
-          v-model="formData.description"
-          type="text"
-          placeholder="Ex: Salário Repositor"
-          class="input"
-        >
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Valor Unitário (R$) *</label>
-          <input 
-            v-model.number="formData.unitValue"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="1500.00"
-            class="input"
-          >
-        </div>
-
-        <div class="form-group">
-          <label>Quantidade *</label>
-          <input 
-            v-model.number="formData.quantity"
-            type="number"
-            step="1"
-            min="1"
-            placeholder="1"
-            class="input"
-          >
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Frequência</label>
-        <select v-model="formData.frequency" class="input">
-          <option value="weekly">Semanal</option>
-          <option value="monthly">Mensal</option>
-          <option value="yearly">Anual</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Data de Início</label>
-        <input 
-          v-model="formData.startDate"
-          type="date"
-          class="input"
-        >
-      </div>
-
-      <div class="form-group">
-        <label>Data de Término (Opcional)</label>
-        <input 
-          v-model="formData.endDate"
-          type="date"
-          class="input"
-        >
-      </div>
-
-      <div class="total-preview">
-        <span class="preview-label">Total:</span>
-        <span class="preview-value">R$ {{ totalValue().toFixed(2) }}</span>
-      </div>
-
-      <div class="form-actions">
-        <button 
-          class="btn-success" 
-          @click="handleCreateExpense" 
-          :disabled="isLoading"
-        >
-          {{ isLoading ? 'Salvando...' : 'Criar' }}
-        </button>
-        <button class="btn-cancel" @click="resetForm">Cancelar</button>
-      </div>
-    </div>
-
-    <!-- Lista de despesas recorrentes criadas -->
     <div class="expenses-list" v-if="expenseStore.expenses.length > 0">
-      <div 
+      <div
         v-for="expense in expenseStore.expenses"
         :key="expense.id"
         class="expense-card"
@@ -226,7 +153,7 @@ export default {
           </div>
           <div class="expense-value">
             <span class="amount">R$ {{ expense.totalAmount.toFixed(2) }}</span>
-            <button 
+            <button
               class="btn-delete"
               @click="handleDeleteExpense(expense.id!)"
               title="Remover"
@@ -257,8 +184,98 @@ export default {
       </div>
     </div>
 
-    <div v-else-if="!showForm" class="empty-state">
+    <div v-else class="empty-state">
       Nenhuma despesa recorrente criada ainda.
+    </div>
+
+    <div v-if="showForm" class="modal-overlay" @click.self="handleCloseForm">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h4>Adicionar Despesa Recorrente</h4>
+          <button class="btn-close" @click="handleCloseForm" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Nome da Conta *</label>
+            <input
+              v-model="formData.description"
+              type="text"
+              placeholder="Ex: Salário Repositor"
+              class="input"
+            />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Valor Unitário (R$) *</label>
+              <input
+                v-model.number="formData.unitValue"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="1500.00"
+                class="input"
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Quantidade *</label>
+              <input
+                v-model.number="formData.quantity"
+                type="number"
+                step="1"
+                min="1"
+                placeholder="1"
+                class="input"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Frequência</label>
+            <select v-model="formData.frequency" class="input">
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensal</option>
+              <option value="yearly">Anual</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Data de Início</label>
+            <input
+              v-model="formData.startDate"
+              type="date"
+              class="input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Data de Término (Opcional)</label>
+            <input
+              v-model="formData.endDate"
+              type="date"
+              class="input"
+            />
+          </div>
+
+          <div class="total-preview">
+            <span class="preview-label">Total:</span>
+            <span class="preview-value">R$ {{ totalValue().toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button
+            class="btn-success"
+            @click="handleCreateExpense"
+            :disabled="isLoading"
+          >
+            {{ isLoading ? 'Salvando...' : 'Confirmar' }}
+          </button>
+          <button class="btn-cancel" @click="handleCloseForm">Fechar</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -270,6 +287,7 @@ export default {
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;
+  position: relative;
 }
 
 .manager-header {
@@ -329,19 +347,6 @@ export default {
 @keyframes slideIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.form-container {
-  background: var(--color-bg);
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid var(--color-border);
-}
-
-.form-container h4 {
-  margin: 0 0 16px 0;
-  color: var(--color-text);
 }
 
 .form-group {
@@ -424,6 +429,11 @@ export default {
 .btn-success:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+}
+
+.btn-success,
+.btn-cancel {
+  min-width: 120px;
 }
 
 .btn-success:disabled {
@@ -548,7 +558,100 @@ export default {
   color: var(--color-text-secondary);
 }
 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 720px);
+  max-width: 720px;
+  max-height: calc(100vh - 40px);
+  background: var(--color-surface);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  animation: popIn 0.2s ease;
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--color-primary);
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: 4px;
+}
+
+.modal-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  background: var(--color-bg);
+  justify-content: flex-end;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
+  .modal-dialog {
+    border-radius: 14px;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
   }
