@@ -30,7 +30,18 @@ interface AddMemberResponse {
   role: CompanyRole;
 }
 
+export interface CompanyDto {
+  id: string;
+  name: string;
+  cnpj: string;
+}
+
 export default class CompanyService {
+  async createCompany(name: string, cnpj: string): Promise<CompanyDto> {
+    const response = await axiosInstance.post<CompanyDto>('/companies', { name, cnpj });
+    return response.data;
+  }
+
   async getUserCompanies(): Promise<UserCompanyDto[]> {
     const response = await axiosInstance.get<UserCompanyDto[]>('/me/companies');
     return response.data;

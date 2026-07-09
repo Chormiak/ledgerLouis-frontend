@@ -7,8 +7,6 @@ export interface UserResponseData {
     name: string;
     email: string;
     avatarUrl?: string;
-    createdAt?: string;
-    updatedAt?: string;
 }
 
 export interface UploadAvatarResponse {
@@ -53,9 +51,7 @@ export default class UserService {
 
     async getUserInfo(): Promise<UserResponseData> {
         try {
-            const response = await axiosInstance.get<UserResponseData>(`/users/byID`)
-
-            console.log('Informações do usuário obtidas:', response.data)
+            const response = await axiosInstance.get<UserResponseData>('/users/me')
             return response.data
         } catch (error) {
             console.error('Erro ao buscar usuário:', error)

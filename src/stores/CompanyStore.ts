@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { reactive } from 'vue';
+import CompanyService from '@/services/companyService';
 
 const STORAGE_KEY = 'ledger_company_data';
 
@@ -67,11 +68,35 @@ export const useCompanyStore = defineStore('company', () => {
     }
   };
 
+  const syncFromBackend = async () => {
+    try {
+      const service = new CompanyService();
+      const userCompanies = await service.getUserCompanies();
+      if (userCompanies.length === 0) return;
+
+      const current = userCompanies.find((c) => c.companyId === company.id) ?? userCompanies[0]!;
+      const safeRole =
+        current.role === 'owner' || current.role === 'admin' || current.role === 'viewer'
+          ? current.role
+          : 'viewer';
+
+      setCompanyData({
+        id: current.companyId,
+        name: current.companyName,
+        role: safeRole,
+        hasCompany: true,
+      });
+    } catch (error) {
+      console.error('Erro ao sincronizar empresa com backend:', error);
+    }
+  };
+
   return {
     company,
     setCompanyData,
     addMember,
     clearCompany,
     loadCompanyData,
+    syncFromBackend,
   };
 });

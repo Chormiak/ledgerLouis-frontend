@@ -24,12 +24,16 @@ import { onMounted } from 'vue';
 import BottomNav from './components/BottomNav.vue';
 import TopNav from './components/TopNav.vue';
 import { useCompanyStore } from './stores/CompanyStore';
+import { useUserStore } from './stores/userStore';
 
 const companyStore = useCompanyStore();
+const userStore = useUserStore();
 
-onMounted(() => {
-  // Carregar dados da empresa salvos em localStorage
+onMounted(async () => {
   companyStore.loadCompanyData();
+  if (userStore.accessToken) {
+    await companyStore.syncFromBackend();
+  }
 });
 </script>
 
