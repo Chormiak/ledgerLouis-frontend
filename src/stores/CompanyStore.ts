@@ -5,6 +5,8 @@ const STORAGE_KEY = 'ledger_company_data';
 
 export const useCompanyStore = defineStore('company', () => {
   const defaultCompany = {
+    id: '',
+    role: 'viewer' as 'owner' | 'admin' | 'viewer',
     name: '',
     cnpj: '',
     address: '',

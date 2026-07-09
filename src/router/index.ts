@@ -55,13 +55,13 @@ const router = createRouter({
     {
       path: '/management',
       name: 'management',
-      component: () => import('../views/PlaceholderView.vue'),
-      meta: { title: 'Gerenciamento', description: 'Visão geral das suas finanças e controles.' },
+      component: () => import('../views/CompanySettingsView.vue'),
+      meta: { title: 'Configurações da Empresa', description: 'Gerencie sua empresa, membros e configurações.' },
     },
     {
       path: '/reports',
       name: 'reports',
-      component: () => import('../views/PlaceholderView.vue'),
+      component: () => import('../views/DashboardView.vue'),
       meta: { title: 'Relatórios', description: 'Acompanhe seu desempenho financeiro mês a mês.' },
     },
     {
