@@ -4,7 +4,7 @@ import type { RecurringExpenseDistribution } from '@/types/CompanyTypes';
 import { Plus, Trash2 } from 'lucide-vue-next';
 import { useRecurringExpenseStore } from '@/stores/recurringExpenseStore';
 
-const expenseStore = useRecurringExpenseStore();
+const expenseStore = useRecurringExpenseStore() ;
 
 const showForm = ref(false);
 const isLoading = ref(false);
@@ -79,7 +79,7 @@ const handleCreateExpense = async () => {
       description: formData.description,
       totalAmount: totalValue(),
       frequency: formData.frequency as 'weekly' | 'monthly' | 'yearly',
-      startDate: formData.startDate,
+      startDate: formData.startDate || '',
       endDate: formData.endDate || undefined,
       participants: [{
         participantId: 'main',
@@ -131,7 +131,7 @@ export default {
     <div class="manager-header">
       <h3>Distribuição de Despesas Recorrentes</h3>
       <button class="btn-add" @click="showForm = true">
-        <Plus size="18" />
+        <Plus :size="18" />
         Nova Despesa
       </button>
     </div>
@@ -158,7 +158,7 @@ export default {
               @click="handleDeleteExpense(expense.id!)"
               title="Remover"
             >
-              <Trash2 size="16" />
+              <Trash2 :size="16" />
             </button>
           </div>
         </div>

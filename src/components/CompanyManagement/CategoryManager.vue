@@ -77,7 +77,7 @@ export default {
     <div class="manager-header">
       <h3>Categorias</h3>
       <button class="btn-add" @click="showForm = !showForm" v-if="!showForm">
-        <Plus size="18" />
+        <Plus :size="18" />
         Nova Categoria
       </button>
     </div>

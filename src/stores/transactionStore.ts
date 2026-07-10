@@ -125,5 +125,6 @@ export const useTransactionStore = defineStore('transaction', () => {
     createTransaction,
     deleteTransaction,
     clearTransactions,
+    
   };
 });

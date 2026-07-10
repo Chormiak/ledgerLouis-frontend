@@ -7,7 +7,7 @@ import ResponsePopUp from './ResponsePopUp.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useRouter } from 'vue-router';
 const router = useRouter();
-const transactionStore = useTransactionStore();
+const transactionStore = useTransactionStore() as any;
 const categoryStore = useCategoryStore();
 
 const incomeData = reactive({
