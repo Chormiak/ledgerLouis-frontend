@@ -20,8 +20,59 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import BottomNav from './components/BottomNav.vue';
 import TopNav from './components/TopNav.vue';
+import { useCompanyStore } from './stores/CompanyStore';
+import { useUserStore } from './stores/userStore';
+import { useTransactionStore } from './stores/transactionStore';
+
+const router = useRouter();
+const companyStore = useCompanyStore();
+const userStore = useUserStore();
+const transactionStore = useTransactionStore();
+
+onMounted(async () => {
+  companyStore.loadCompanyData();
+  if (userStore.accessToken) {
+    await companyStore.syncFromBackend();
+  }
+});
+
+// Observar mudanças no accessToken para sincronizar companies após login
+watch(
+  () => userStore.accessToken,
+  async (newToken, oldToken) => {
+    // Se o token mudou de vazio para algo, significa que o usuário fez login
+    if (!oldToken && newToken) {
+      console.log('Token detectado, sincronizando companies...');
+      await companyStore.syncFromBackend();
+    }
+  }
+);
+
+// Limpar transações quando não houver empresa selecionada
+watch(
+  () => companyStore.company.hasCompany,
+  (hasCompany) => {
+    if (!hasCompany) {
+      transactionStore.clearTransactions();
+    }
+  }
+);
+
+// Redirecionar para login quando o token for limpo (apenas se não estiver na página de login)
+watch(
+  () => userStore.accessToken,
+  (newToken, oldToken) => {
+    // Se o token foi removido (era algo e agora é vazio) e não estamos na página de login
+    if (oldToken && !newToken && router.currentRoute.value.name !== 'entrar') {
+      console.log('Token removido, redirecionando para login...');
+      router.push({ name: 'entrar' });
+    }
+  }
+);
 </script>
 
 <style>

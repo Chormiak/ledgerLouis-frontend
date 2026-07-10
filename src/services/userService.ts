@@ -1,14 +1,13 @@
 import type {userLoginType, userRegisterType} from "@/types/UserTypes";
 import axiosInstance from "@/plugins/axios";
 import { useUserStore } from "@/stores/userStore";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 export interface UserResponseData {
     id: string;
     name: string;
     email: string;
     avatarUrl?: string;
-    createdAt?: string;
-    updatedAt?: string;
 }
 
 export interface UploadAvatarResponse {
@@ -53,9 +52,7 @@ export default class UserService {
 
     async getUserInfo(): Promise<UserResponseData> {
         try {
-            const response = await axiosInstance.get<UserResponseData>(`/users/byID`)
-
-            console.log('Informações do usuário obtidas:', response.data)
+            const response = await axiosInstance.get<UserResponseData>('/users/me')
             return response.data
         } catch (error) {
             console.error('Erro ao buscar usuário:', error)
@@ -102,7 +99,14 @@ export default class UserService {
     logout() {
         try {
             const userStore = useUserStore()
+            const companyStore = useCompanyStore()
+            
+            // Limpar dados do usuário
             userStore.clearUser()
+            
+            // Limpar dados da empresa
+            companyStore.clearCompany()
+            
             localStorage.removeItem('token')
             console.log('Usuário deslogado com sucesso')
             return true

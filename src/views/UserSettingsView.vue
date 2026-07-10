@@ -73,12 +73,20 @@
             <div class="info-grid">
               <div class="info-item">
                 <label class="info-label">Nome Completo</label>
-                <div class="info-value">{{ userInfo.name || 'Carregando...' }}</div>
+                <div class="info-value">
+                  <span v-if="isLoadingUser">Carregando...</span>
+                  <span v-else-if="loadError" class="error-msg">{{ loadError }}</span>
+                  <span v-else>{{ userInfo.name }}</span>
+                </div>
               </div>
 
               <div class="info-item">
                 <label class="info-label">Email</label>
-                <div class="info-value">{{ userInfo.email || 'Carregando...' }}</div>
+                <div class="info-value">
+                  <span v-if="isLoadingUser">Carregando...</span>
+                  <span v-else-if="loadError" class="error-msg">{{ loadError }}</span>
+                  <span v-else>{{ userInfo.email }}</span>
+                </div>
               </div>
 
               <div class="info-item logout-button-container">
@@ -133,6 +141,8 @@ interface UserInfo {
 
 const isUserExpanded = ref(true)
 const isUploading = ref(false)
+const isLoadingUser = ref(true)
+const loadError = ref('')
 const uploadError = ref('')
 const uploadSuccess = ref('')
 const fileInput = ref<HTMLInputElement>()
@@ -162,18 +172,23 @@ const handleLogout = () => {
 }
 
 const loadUserInfo = async () => {
+  isLoadingUser.value = true
+  loadError.value = ''
   try {
     const response = await userService.getUserInfo()
-    if (response) {
-      userInfo.id = response.id || ''
-      userInfo.name = response.name || ''
-      userInfo.email = response.email || ''
-      userInfo.avatar = response.avatarUrl || ''
+    userInfo.id = response.id || ''
+    userInfo.name = response.name || ''
+    userInfo.email = response.email || ''
+    userInfo.avatar = response.avatar || ''
 
-      if (response.avatarUrl) userStore.setavatar(response.avatarUrl)
+    if (response.avatar) {
+      userStore.setavatar(response.avatar)
     }
   } catch (error) {
     console.error('Erro ao carregar informações do usuário:', error)
+    loadError.value = 'Não foi possível carregar seus dados. Verifique se você está logado.'
+  } finally {
+    isLoadingUser.value = false
   }
 }
 

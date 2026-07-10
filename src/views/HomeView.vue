@@ -47,7 +47,6 @@ import { useRouter } from 'vue-router';
 import HeroSection from '@/components/HeroSection.vue';
 import FeatureItem from '@/components/FeatureItem.vue';
 import CompanyTestimonials from '@/components/CompanyTestimonials.vue';
-import FooterSection from '@/components/FooterSection.vue';
 import CalltoAction from '@/components/CalltoAction.vue';
 
 const router = useRouter();
@@ -64,8 +63,7 @@ const handleSignup = () => {
 }
 
 .features-section {
-  /* Reduzi de 30px para 10px no topo */
-  padding: 10px 25px 30px 25px; 
+  padding: 80px 25px 60px 25px;
 }
 
 .section-title {

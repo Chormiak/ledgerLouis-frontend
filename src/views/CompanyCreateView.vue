@@ -26,10 +26,12 @@
 
           <BaseInput
             id="cnpj"
-            label="CNPJ (opcional)"
+            label="CNPJ"
             type="text"
             placeholder="00.000.000/0000-00"
             v-model="form.cnpj"
+            :error="errors.cnpj"
+            required
           />
 
           <BaseInput
@@ -73,6 +75,7 @@
           <button type="button" class="secondary-button" @click="goBack">Voltar</button>
           <PrimaryButton type="submit" :loading="loading">Criar Empresa</PrimaryButton>
         </div>
+        <p v-if="submitError" class="error-message">{{ submitError }}</p>
       </form>
     </section>
   </main>
@@ -84,10 +87,13 @@ import { useRouter } from 'vue-router';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import BaseInput from '@/components/inputs/BaseInput.vue';
 import PrimaryButton from '@/components/inputs/PrimaryButton.vue';
+import CompanyService from '@/services/companyService';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
+const companyService = new CompanyService();
 const loading = ref(false);
+const submitError = ref('');
 
 const form = reactive({
   name: '',
@@ -100,6 +106,7 @@ const form = reactive({
 
 const errors = reactive({
   name: false,
+  cnpj: false,
   email: false,
   phone: false,
 });
@@ -108,16 +115,20 @@ const goBack = () => {
   router.back();
 };
 
-const handleSubmit = () => {
-  // Limpar erros anteriores
+const handleSubmit = async () => {
+  submitError.value = '';
   errors.name = false;
+  errors.cnpj = false;
   errors.email = false;
   errors.phone = false;
 
-  // Validar campos obrigatórios
   let isValid = true;
   if (!form.name.trim()) {
     errors.name = true;
+    isValid = false;
+  }
+  if (!form.cnpj.trim()) {
+    errors.cnpj = true;
     isValid = false;
   }
   if (!form.email.trim()) {
@@ -134,18 +145,36 @@ const handleSubmit = () => {
   }
 
   loading.value = true;
-  companyStore.setCompanyData({
-    name: form.name,
-    cnpj: form.cnpj,
-    address: form.address,
-    email: form.email,
-    website: form.website,
-    phone: form.phone,
-    owner: form.email,
-    hasCompany: true,
-  });
-  router.replace({ name: 'companySettings' });
-  loading.value = false;
+  try {
+    const created = await companyService.createCompany(form.name.trim(), form.cnpj.trim());
+
+    companyStore.setCompanyData({
+      id: created.id,
+      name: created.name,
+      cnpj: created.cnpj,
+      address: form.address,
+      email: form.email,
+      website: form.website,
+      phone: form.phone,
+      owner: form.email,
+      role: 'owner',
+      hasCompany: true,
+    });
+
+    router.replace({ name: 'companySettings' });
+  } catch (error: unknown) {
+    const message =
+      typeof error === 'object' && error !== null && 'response' in error
+        ? (error as { response?: { data?: { message?: string; error?: string } } }).response?.data
+            ?.message ||
+          (error as { response?: { data?: { message?: string; error?: string } } }).response?.data
+            ?.error
+        : undefined;
+    submitError.value = message || 'Erro ao criar empresa. Verifique o CNPJ e tente novamente.';
+    console.error('Erro ao criar empresa:', error);
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 
@@ -303,5 +332,11 @@ input:focus {
   border: 1px solid var(--color-border);
   background: transparent;
   color: var(--color-text);
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.9rem;
+  margin: 0;
 }
 </style>
