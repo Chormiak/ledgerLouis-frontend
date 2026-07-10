@@ -47,7 +47,6 @@ import { useRouter } from 'vue-router';
 import HeroSection from '@/components/HeroSection.vue';
 import FeatureItem from '@/components/FeatureItem.vue';
 import CompanyTestimonials from '@/components/CompanyTestimonials.vue';
-import FooterSection from '@/components/FooterSection.vue';
 import CalltoAction from '@/components/CalltoAction.vue';
 
 const router = useRouter();

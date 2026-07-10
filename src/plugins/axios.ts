@@ -34,8 +34,10 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       console.warn('Token expirado ou inválido')
       const userStore = useUserStore()
+      
+      // Apenas limpa o token, não redireciona aqui
+      // O redirecionamento será feito pelo App.vue ou pela página de login
       userStore.clearTokens()
-      window.location.href = '/entrar'
     }
 
     if (error.response?.status === 500) {

@@ -1,6 +1,7 @@
 import type {userLoginType, userRegisterType} from "@/types/UserTypes";
 import axiosInstance from "@/plugins/axios";
 import { useUserStore } from "@/stores/userStore";
+import { useCompanyStore } from "@/stores/CompanyStore";
 
 export interface UserResponseData {
     id: string;
@@ -98,7 +99,14 @@ export default class UserService {
     logout() {
         try {
             const userStore = useUserStore()
+            const companyStore = useCompanyStore()
+            
+            // Limpar dados do usuário
             userStore.clearUser()
+            
+            // Limpar dados da empresa
+            companyStore.clearCompany()
+            
             localStorage.removeItem('token')
             console.log('Usuário deslogado com sucesso')
             return true

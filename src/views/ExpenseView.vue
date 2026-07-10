@@ -2,18 +2,14 @@
 import { reactive } from 'vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useRouter } from 'vue-router';
-import { useCategoryStore } from '@/stores/categoryStore';
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
-const categoryStore = useCategoryStore();
 
 const expenseData = reactive({
   amount: '',
   description: '',
-  category: categoryStore.getCategories('expense')[0]?.id ?? '',
   date: new Date().toISOString().split('T')[0],
-  notes: '',
 });
 
 const response = reactive({
@@ -26,7 +22,7 @@ const handleAddExpense = async (e: Event) => {
   e.preventDefault();
   
   try {
-    if (!expenseData.amount || !expenseData.description || !expenseData.category || !expenseData.date) {
+    if (!expenseData.amount || !expenseData.description || !expenseData.date) {
       response.status = 'error';
       response.message = 'Preencha todos os campos obrigatórios';
       response.show = true;
@@ -41,12 +37,11 @@ const handleAddExpense = async (e: Event) => {
       return;
     }
 
-    transactionStore.addExpense({
+    await transactionStore.createTransaction({
       amount,
       description: expenseData.description,
-      category: expenseData.category,
+      entryType: 'debit',
       date: expenseData.date,
-      notes: expenseData.notes,
     });
 
     response.status = 'success';
@@ -56,7 +51,7 @@ const handleAddExpense = async (e: Event) => {
     setTimeout(() => {
       router.push({ name: 'management' });
     }, 2000);
-  } catch (_error) {
+  } catch {
     response.status = 'error';
     response.message = 'Erro ao registrar despesa. Tente novamente.';
     response.show = true;
@@ -118,18 +113,6 @@ const handleCancel = () => {
           </div>
         </div>
          
-        <div class="form-group">
-          <label class="form-label">Categoria</label>
-          <div class="select-wrapper">
-            <select v-model="expenseData.category" class="form-select">
-              <option value="" disabled>Selecione uma categoria</option>
-              <option v-for="cat in categoryStore.getCategories('expense')" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="select-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </div>
-        </div>
         
         <div class="form-actions">
           <button 

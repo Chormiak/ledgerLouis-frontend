@@ -9,26 +9,26 @@
       <section class="metrics-grid" aria-label="Resumo financeiro">
         <DashboardCard
           title="Saldo total"
-          value="R$ 48.750,35"
+          :value="formattedAccountValue"
           description="Saldo disponível"
-          trend-value="+ 12,5%"
+          :trend-value="balanceTrend"
           trend-label="vs mês anterior"
-          tone="positive"
+          :tone="accountValue >= 0 ? 'positive' : 'negative'"
         >
           <template #icon>
-            <div class="card-icon card-icon--positive">
+            <div class="card-icon" :class="accountValue >= 0 ? 'card-icon--positive' : 'card-icon--negative'">
               <WalletMinimal :size="20" />
             </div>
           </template>
 
           <template #sparkline>
-            <DashboardSparkline variant="success" />
+            <DashboardSparkline :variant="accountValue >= 0 ? 'success' : 'danger'" />
           </template>
         </DashboardCard>
 
         <DashboardCard
           title="Entradas do mês"
-          value="R$ 79.450,00"
+          :value="formattedIncome"
           description="Total de entradas"
           trend-value="+ 8,3%"
           trend-label="vs mês anterior"
@@ -47,7 +47,7 @@
 
         <DashboardCard
           title="Saídas do mês"
-          value="R$ 30.699,65"
+          :value="formattedExpense"
           description="Total de saídas"
           trend-value="+ 3,7%"
           trend-label="vs mês anterior"
@@ -65,15 +65,15 @@
         </DashboardCard>
 
         <DashboardCard
-          title="Crescimento"
-          value="+ 16,8%"
-          description="Crescimento mensal"
+          title="Transações"
+          :value="transactionCount.toString()"
+          description="Total de transações"
           trend-value="+ 5,2%"
           trend-label="vs mês anterior"
-          tone="positive"
+          tone="neutral"
         >
           <template #icon>
-            <div class="card-icon card-icon--positive">
+            <div class="card-icon card-icon--neutral">
               <ChartNoAxesCombined :size="20" />
             </div>
           </template>
@@ -86,7 +86,6 @@
 
       <section class="charts-grid" aria-label="Gráficos financeiros">
         <RevenueChart />
-        <ExpensesPie />
       </section>
 
       <RecentTransactions />
@@ -95,14 +94,73 @@
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue';
 import { ArrowDownToLine, ArrowUpFromLine, ChartNoAxesCombined, WalletMinimal } from 'lucide-vue-next';
 
 import DashboardCard from '@/components/dashboard/DashboardCard.vue';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
 import DashboardSparkline from '@/components/dashboard/DashboardSparkline.vue';
-import ExpensesPie from '@/components/dashboard/ExpensesPie.vue';
 import RecentTransactions from '@/components/dashboard/RecentTransactions.vue';
 import RevenueChart from '@/components/dashboard/RevenueChart.vue';
+import { useTransactionStore } from '@/stores/transactionStore';
+import { useCompanyStore } from '@/stores/CompanyStore';
+
+const transactionStore = useTransactionStore();
+const companyStore = useCompanyStore();
+
+onMounted(async () => {
+  if (companyStore.company.hasCompany) {
+    await transactionStore.fetchTransactions();
+    await transactionStore.fetchAccountValue();
+  }
+});
+
+const accountValue = computed(() => transactionStore.accountValue);
+
+const formattedAccountValue = computed(() => {
+  const value = accountValue.value;
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+});
+
+const balanceTrend = computed(() => {
+  const value = accountValue.value;
+  if (value > 0) return '+ 12,5%';
+  if (value < 0) return '- 5,2%';
+  return '0%';
+});
+
+const income = computed(() => {
+  return transactionStore.transactions
+    .filter(t => t.entryType === 'credit')
+    .reduce((sum, t) => sum + t.amount, 0);
+});
+
+const expense = computed(() => {
+  return transactionStore.transactions
+    .filter(t => t.entryType === 'debit')
+    .reduce((sum, t) => sum + t.amount, 0);
+});
+
+const formattedIncome = computed(() => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(income.value);
+});
+
+const formattedExpense = computed(() => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(expense.value);
+});
+
+const transactionCount = computed(() => {
+  return transactionStore.transactions.length;
+});
 </script>
 
 <style scoped>
@@ -172,6 +230,11 @@ import RevenueChart from '@/components/dashboard/RevenueChart.vue';
 .card-icon--negative {
   color: var(--color-danger);
   background: rgba(229, 33, 36, 0.12);
+}
+
+.card-icon--neutral {
+  color: var(--color-text-secondary);
+  background: rgba(107, 114, 128, 0.12);
 }
 
 @media (min-width: 640px) {

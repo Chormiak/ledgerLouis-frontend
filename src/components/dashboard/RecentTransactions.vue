@@ -11,51 +11,52 @@
 
     <ul class="transactions-list">
       <TransactionItem
-        v-for="transaction in transactions"
-        :key="transaction.title + transaction.date"
-        :title="transaction.title"
-        :subtitle="transaction.subtitle"
-        :amount="transaction.amount"
-        :date="transaction.date"
-        :kind="transaction.kind"
+        v-for="transaction in recentTransactions"
+        :key="transaction.id"
+        :title="transaction.description"
+        :subtitle="transaction.entryType === 'credit' ? 'Entrada' : 'Saída'"
+        :amount="formattedAmount(transaction)"
+        :date="formattedDate(transaction.date)"
+        :kind="transaction.entryType === 'credit' ? 'income' : 'expense'"
       />
     </ul>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import TransactionItem from '@/components/dashboard/TransactionItem.vue';
+import { useTransactionStore } from '@/stores/transactionStore';
 
-const transactions = [
-  {
-    title: 'Venda de serviço',
-    subtitle: 'Receita operacional',
-    amount: '+ R$ 2.450,00',
-    date: 'Hoje, 10:30',
-    kind: 'income' as const,
-  },
-  {
-    title: 'Aluguel do escritório',
-    subtitle: 'Despesa fixa',
-    amount: '- R$ 1.500,00',
-    date: 'Hoje, 08:15',
-    kind: 'expense' as const,
-  },
-  {
-    title: 'Venda de produto',
-    subtitle: 'Receita operacional',
-    amount: '+ R$ 5.800,00',
-    date: 'Ontem, 16:45',
-    kind: 'income' as const,
-  },
-  {
-    title: 'Material de escritório',
-    subtitle: 'Despesa administrativa',
-    amount: '- R$ 320,50',
-    date: 'Ontem, 14:20',
-    kind: 'expense' as const,
-  },
-];
+const transactionStore = useTransactionStore();
+
+const recentTransactions = computed(() => {
+  return transactionStore.transactions.slice(0, 5);
+});
+
+const formattedAmount = (transaction: { amount: number; entryType: string }) => {
+  const value = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(transaction.amount);
+  
+  return transaction.entryType === 'credit' ? `+ ${value}` : `- ${value}`;
+};
+
+const formattedDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) {
+    return `Hoje, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  } else if (diffDays === 1) {
+    return `Ontem, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  } else {
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  }
+};
 </script>
 
 <style scoped>
