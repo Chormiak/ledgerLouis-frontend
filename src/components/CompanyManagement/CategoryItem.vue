@@ -36,10 +36,10 @@ export default {
       </div>
     <button 
       class="btn-delete" 
-      @click="$emit('delete', category.id)"
+      @click="$emit('delete', category.id || '')"
       :title="`Remover ${category.name}`"
     >
-      <Trash2 size="18" />
+      <Trash2 :size="18" />
     </button>
   </div>
 </template>

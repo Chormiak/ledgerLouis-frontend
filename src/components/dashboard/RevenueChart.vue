@@ -122,9 +122,9 @@ const periodData = computed(() => {
       
       if (weekNum >= 0 && weekNum < 4) {
         if (transaction.entryType === 'credit') {
-          incomeData[3 - weekNum] += transaction.amount;
+          incomeData[3 - weekNum] = (incomeData[3 - weekNum] ?? 0) + transaction.amount;
         } else {
-          expenseData[3 - weekNum] += transaction.amount;
+          expenseData[3 - weekNum] = (expenseData[3 - weekNum] ?? 0) + transaction.amount;
         }
       }
     });
@@ -139,9 +139,9 @@ const periodData = computed(() => {
       const month = date.getMonth();
       
       if (transaction.entryType === 'credit') {
-        incomeData[month] += transaction.amount;
+        incomeData[month] = (incomeData[month] ?? 0) + transaction.amount;
       } else {
-        expenseData[month] += transaction.amount;
+        incomeData[month] = (incomeData[month] ?? 0) + transaction.amount;
       }
     });
   } else if (selectedPeriod.value === 'annual') {

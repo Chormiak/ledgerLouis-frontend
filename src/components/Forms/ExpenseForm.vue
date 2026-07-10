@@ -7,7 +7,7 @@ import ResponsePopUp from './ResponsePopUp.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useRouter } from 'vue-router';
 const router = useRouter();
-const transactionStore = useTransactionStore();
+const transactionStore = useTransactionStore() as any;
 const categoryStore = useCategoryStore();
 
 const expenseData = reactive({
@@ -42,11 +42,11 @@ const handleAddExpense = async () => {
     }
 
     transactionStore.addExpense({
-      amount,
+      amount: Number(expenseData.amount),
       description: expenseData.description,
       category: expenseData.category,
       date: expenseData.date,
-      notes: expenseData.notes,
+      notes: expenseData.notes || '',
     });
 
     response.status = 'success';

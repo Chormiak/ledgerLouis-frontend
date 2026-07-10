@@ -20,7 +20,7 @@ export const useRecurringExpenseStore = defineStore('recurringExpense', () => {
   const updateExpense = (id: string, expense: Partial<RecurringExpenseDistribution>) => {
     const index = expenses.value.findIndex(e => e.id === id);
     if (index !== -1) {
-      expenses.value[index] = { ...expenses.value[index], ...expense };
+      expenses.value[index] = { ...expenses.value[index], ...expense } as any;
     }
   };
 

@@ -7,7 +7,7 @@ export interface UserResponseData {
     id: string;
     name: string;
     email: string;
-    avatarUrl?: string;
+    avatar: string;
 }
 
 export interface UploadAvatarResponse {
