@@ -63,8 +63,7 @@ const handleSignup = () => {
 }
 
 .features-section {
-  /* Reduzi de 30px para 10px no topo */
-  padding: 10px 25px 30px 25px; 
+  padding: 80px 25px 60px 25px;
 }
 
 .section-title {
