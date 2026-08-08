@@ -44,10 +44,10 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import HeroSection from '@/components/HeroSection.vue';
-import FeatureItem from '@/components/FeatureItem.vue';
-import CompanyTestimonials from '@/components/CompanyTestimonials.vue';
-import CalltoAction from '@/components/CalltoAction.vue';
+import HeroSection from '@/components/sections/HeroSection.vue';
+import FeatureItem from '@/components/sections/FeatureItem.vue';
+import CompanyTestimonials from '@/components/sections/CompanyTestimonials.vue';
+import CalltoAction from '@/components/sections/CalltoAction.vue';
 
 const router = useRouter();
 

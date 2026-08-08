@@ -22,8 +22,8 @@
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import BottomNav from './components/BottomNav.vue';
-import TopNav from './components/TopNav.vue';
+import BottomNav from './components/layout/BottomNav.vue';
+import TopNav from './components/layout/TopNav.vue';
 import { useCompanyStore } from './stores/CompanyStore';
 import { useUserStore } from './stores/userStore';
 import { useTransactionStore } from './stores/transactionStore';

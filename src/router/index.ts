@@ -38,7 +38,7 @@ const router = createRouter({
     {
       path: '/testUploader',
       name: 'testUploader',
-      component: () => import('@/components/UploaderTest.vue'),
+      component: () => import('@/components/dev/UploaderTest.vue'),
     },
     {
       path: '/cadastro',
