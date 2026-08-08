@@ -36,9 +36,9 @@ import { CalendarDays, Download, Plus } from 'lucide-vue-next';
   display: grid;
   gap: 18px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid var(--color-border);
   border-radius: 28px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.88));
+  background: linear-gradient(135deg, rgba(var(--color-surface-rgb), 0.92), rgba(var(--color-surface-rgb), 0.88));
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(18px);
 }
@@ -86,7 +86,7 @@ h1 {
 
 .period-chip {
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(var(--color-surface-rgb), 0.86);
   color: var(--color-text-secondary);
 }
 

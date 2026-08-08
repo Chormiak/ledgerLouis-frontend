@@ -35,10 +35,6 @@
     <CompanyTestimonials />
 
     <CalltoAction @signup="handleSignup" />
-
-    <FooterSection />
-
-    <div class="bottom-spacer"></div>
   </main>
 </template>
 
@@ -60,6 +56,10 @@ const handleSignup = () => {
 .home-container {
   background-color: var(--color-surface-soft);
   min-height: 100vh;
+}
+
+.home-container :deep(.hero) {
+  margin-top: -10px;
 }
 
 .features-section {

@@ -328,7 +328,7 @@ const exportToPDF = () => {
   padding: 18px;
   border-radius: 28px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(var(--color-surface-rgb), 0.96);
   box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
 }
 
@@ -380,7 +380,7 @@ h2 {
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background: white;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

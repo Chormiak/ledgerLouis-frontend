@@ -97,6 +97,29 @@
         </transition>
       </section>
 
+      <!-- Appearance Settings Section -->
+      <section class="settings-card">
+        <div class="card-header">
+          <div class="header-content">
+            <component :is="isDark ? Moon : Sun" :size="24" class="icon" />
+            <div>
+              <h2>Aparência</h2>
+              <span class="subtitle">Escolha entre o tema claro e o escuro</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="theme-switch"
+            role="switch"
+            :aria-checked="isDark"
+            aria-label="Alternar modo escuro"
+            @click="themeStore.toggleTheme()"
+          >
+            <span class="theme-switch-thumb" />
+          </button>
+        </div>
+      </section>
+
       <!-- Additional Settings Sections (for future use) -->
       <section class="settings-card disabled">
         <div class="card-header">
@@ -128,9 +151,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, ChevronDown, Lock, Bell } from 'lucide-vue-next'
+import { User, ChevronDown, Lock, Bell, Sun, Moon } from 'lucide-vue-next'
 import UserService from '@/services/userService'
 import { useUserStore } from '@/stores/userStore'
+import { useThemeStore } from '@/stores/themeStore'
 
 interface UserInfo {
   id: string
@@ -148,7 +172,10 @@ const uploadSuccess = ref('')
 const fileInput = ref<HTMLInputElement>()
 
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const router = useRouter()
+
+const isDark = computed(() => themeStore.theme === 'dark')
 
 const userInfo = reactive<UserInfo>({
   id: '',
@@ -354,6 +381,39 @@ onMounted(() => {
 
 .chevron.rotated {
   transform: rotate(180deg);
+}
+
+/* Theme Switch */
+.theme-switch {
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.theme-switch[aria-checked='true'] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.theme-switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease;
+}
+
+.theme-switch[aria-checked='true'] .theme-switch-thumb {
+  transform: translateX(20px);
 }
 
 /* Card Content */

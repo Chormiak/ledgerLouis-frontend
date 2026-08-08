@@ -8,6 +8,7 @@ import '@/assets/global/Global.css'
 import App from './App.vue';
 import router from './router';
 import { useUserStore } from './stores/userStore.ts';
+import { useThemeStore } from './stores/themeStore.ts';
 
 const updateSW = registerSW({
   onNeedRefresh() {
@@ -27,6 +28,8 @@ app.use(VueApexCharts);
 
 
 app.mount('#app');
+
+useThemeStore().initTheme();
 
 const userStore = useUserStore();
 const savedAcessToken = localStorage.getItem('token')

@@ -24,7 +24,7 @@ defineProps<{
   gap: 20px;
   margin-bottom: 40px;
   padding: 20px;
-  background: white;
+  background: var(--color-surface);
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
