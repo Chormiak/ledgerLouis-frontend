@@ -79,4 +79,18 @@ h2.cta-title {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+@media (min-width: 1100px) {
+  .decision-cta {
+    padding: 64px 25px;
+  }
+
+  .cta-content {
+    max-width: 460px;
+  }
+
+  h2.cta-title {
+    font-size: 30px;
+  }
+}
 </style>

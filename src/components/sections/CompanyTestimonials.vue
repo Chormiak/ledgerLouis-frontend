@@ -146,8 +146,20 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   position: relative;
   height: 200px; /* Reduzido de 220px */
   width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
   perspective: 1000px;
   cursor: pointer;
+}
+
+@media (min-width: 1100px) {
+  .testimonials-section {
+    padding: 20px 25px 56px;
+  }
+
+  .stack-container {
+    max-width: 460px;
+  }
 }
 
 .company-card {

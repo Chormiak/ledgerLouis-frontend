@@ -1,5 +1,6 @@
 <template>
   <main class="company-admin-page">
+    <div class="page-inner">
     <!-- Header da Página -->
     <div class="admin-header">
       <div class="header-content">
@@ -104,6 +105,7 @@
     <div class="management-container">
       <CategoryManager />
       <RecurringExpenseManager />
+    </div>
     </div>
   </main>
 </template>
@@ -236,6 +238,11 @@ onMounted(async () => {
   min-height: calc(100vh - 65px);
   padding: 32px 20px;
   background-color: var(--color-surface-soft);
+}
+
+.page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .admin-header {

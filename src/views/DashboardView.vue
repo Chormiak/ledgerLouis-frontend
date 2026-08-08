@@ -86,9 +86,8 @@
 
       <section class="charts-grid" aria-label="Gráficos financeiros">
         <RevenueChart />
+        <RecentTransactions />
       </section>
-
-      <RecentTransactions />
     </div>
   </main>
 </template>
@@ -166,6 +165,7 @@ const transactionCount = computed(() => {
 <style scoped>
 .dashboard-page {
   position: relative;
+  overflow-x: hidden;
   min-height: calc(100vh - 165px);
   margin-top: -10px;
   padding: 30px 16px 32px;

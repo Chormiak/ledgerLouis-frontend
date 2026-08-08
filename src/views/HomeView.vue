@@ -32,9 +32,13 @@
       </div>
     </section>
 
+    <HowItWorks />
+
     <CompanyTestimonials />
 
     <CalltoAction @signup="handleSignup" />
+
+    <FooterSection />
   </main>
 </template>
 
@@ -42,8 +46,10 @@
 import { useRouter } from 'vue-router';
 import HeroSection from '@/components/sections/HeroSection.vue';
 import FeatureItem from '@/components/sections/FeatureItem.vue';
+import HowItWorks from '@/components/sections/HowItWorks.vue';
 import CompanyTestimonials from '@/components/sections/CompanyTestimonials.vue';
 import CalltoAction from '@/components/sections/CalltoAction.vue';
+import FooterSection from '@/components/layout/FooterSection.vue';
 
 const router = useRouter();
 
@@ -63,22 +69,39 @@ const handleSignup = () => {
 }
 
 .features-section {
-  padding: 80px 25px 60px 25px;
+  padding: 70px 25px 20px 25px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .section-title {
-  font-size: 22px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2vw, 27px);
   color: var(--color-success-dark);
-  /* Reduzi de 40px para 20px */
-  margin-bottom: 20px; 
+  margin-bottom: 32px;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 .highlight {
   font-weight: 800;
 }
 
-.bottom-spacer {
-  height: 100px; 
+.features-list {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 700px) {
+  .features-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .features-section {
+    padding: 64px 25px 24px;
+  }
 }
 </style>
