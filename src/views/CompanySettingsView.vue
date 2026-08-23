@@ -102,6 +102,7 @@
 
     <!-- Componentes de Gerenciamento -->
     <div class="management-container">
+      <TagManager />
       <CategoryManager />
       <RecurringExpenseManager />
     </div>
@@ -115,6 +116,7 @@ import { useCompanyStore } from '@/stores/CompanyStore';
 import CompanyService, { type CompanyRole } from '@/services/companyService';
 import CategoryManager from '@/components/CompanyManagement/CategoryManager.vue';
 import RecurringExpenseManager from '@/components/CompanyManagement/RecurringExpenseManager.vue';
+import TagManager from '@/components/CompanyManagement/TagManager.vue';
 import BaseInput from '@/components/inputs/BaseInput.vue';
 
 const router = useRouter();

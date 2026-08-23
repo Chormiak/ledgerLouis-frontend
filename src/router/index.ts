@@ -65,6 +65,12 @@ const router = createRouter({
       meta: { title: 'Relatórios', description: 'Acompanhe seu desempenho financeiro mês a mês.' },
     },
     {
+      path: '/tags',
+      name: 'tags',
+      component: () => import('../views/TagsManagementView.vue'),
+      meta: { title: 'Tags', description: 'Gerencie as tags usadas para catalogar suas transações.' },
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('../views/UserSettingsView.vue'),

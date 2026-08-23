@@ -27,11 +27,17 @@
 import { computed } from 'vue';
 import TransactionItem from '@/components/dashboard/TransactionItem.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
+import type { TransactionDto } from '@/services/transactionService';
+
+const props = defineProps<{
+  transactions?: TransactionDto[];
+}>();
 
 const transactionStore = useTransactionStore();
 
 const recentTransactions = computed(() => {
-  return transactionStore.transactions.slice(0, 5);
+  const source = props.transactions ?? transactionStore.transactions;
+  return source.slice(0, 5);
 });
 
 const formattedAmount = (transaction: { amount: number; entryType: string }) => {

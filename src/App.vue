@@ -27,11 +27,15 @@ import TopNav from './components/TopNav.vue';
 import { useCompanyStore } from './stores/CompanyStore';
 import { useUserStore } from './stores/userStore';
 import { useTransactionStore } from './stores/transactionStore';
+import { useTagStore } from './stores/tagStore';
+import { useAnalyticsStore } from './stores/analyticsStore';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
 const userStore = useUserStore();
 const transactionStore = useTransactionStore();
+const tagStore = useTagStore();
+const analyticsStore = useAnalyticsStore();
 
 onMounted(async () => {
   companyStore.loadCompanyData();
@@ -52,12 +56,14 @@ watch(
   }
 );
 
-// Limpar transações quando não houver empresa selecionada
+// Limpar dados escopados por empresa quando não houver empresa selecionada
 watch(
   () => companyStore.company.hasCompany,
   (hasCompany) => {
     if (!hasCompany) {
       transactionStore.clearTransactions();
+      tagStore.clearTags();
+      analyticsStore.clearAnalytics();
     }
   }
 );
