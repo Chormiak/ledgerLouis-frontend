@@ -21,7 +21,7 @@ export default class UserService {
     async register(userData: userRegisterType) {
         try {
             console.log('Dados de registro recebidos:', userData);
-            const response = await axiosInstance.post('/users/register', userData)
+            const response = await axiosInstance.post('/users', userData)
             return response.data
         } catch (error) {
             console.error('Erro ao registrar usuário:', error)

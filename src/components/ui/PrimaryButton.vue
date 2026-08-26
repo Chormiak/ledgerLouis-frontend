@@ -23,8 +23,8 @@ defineEmits(['click'])
   border: none;
   border-radius: var(--radius-input);
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  box-shadow: 0 6px 20px var(--color-primary-glow);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33,11 +33,11 @@ defineEmits(['click'])
 .primary-btn:hover:not(:disabled) {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 10px 28px var(--color-primary-glow);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
 }
 .primary-btn:active:not(:disabled) {
   transform: translateY(0);
-  box-shadow: 0 4px 12px var(--color-primary-glow);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 .primary-btn:disabled {
   opacity: 0.6;

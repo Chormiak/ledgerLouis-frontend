@@ -2,79 +2,77 @@
   <main class="company-create-page">
     <section class="company-create-container">
       <header class="header-block">
-        <div>
-          <p class="eyebrow">Cadastro de Empresa</p>
-          <h1>Preencha os dados da sua nova empresa</h1>
-          <p class="description">
-            Informe os dados principais para que sua empresa possa ser registrada no Ledger Louis.
-          
-          </p>
-        </div>
+        <p class="kicker">Cadastro de empresa</p>
+        <h1>Registre sua <span class="accent-text">empresa</span> no Ledger Louis</h1>
+        <p class="description">
+          Informe os dados principais para começar a organizar as finanças do seu negócio.
+        </p>
       </header>
 
       <form class="company-form" @submit.prevent="handleSubmit">
-        <div class="field-grid">
-          <BaseInput
-            id="name"
-            label="Nome da empresa"
-            type="text"
-            placeholder="Ex: Studio Louis"
-            v-model="form.name"
-            :error="errors.name"
-            required
-          />
+        <div class="field-list">
+          <div class="field-row" :class="{ 'field-row--error': errors.name }">
+            <label for="name" class="field-label">Nome da empresa</label>
+            <BaseInput
+              id="name"
+              type="text"
+              placeholder="Ex: Studio Louis"
+              v-model="form.name"
+              :error="errors.name"
+              required
+            />
+          </div>
 
-          <BaseInput
-            id="cnpj"
-            label="CNPJ"
-            type="text"
-            placeholder="00.000.000/0000-00"
-            v-model="form.cnpj"
-            :error="errors.cnpj"
-            required
-          />
+          <div class="field-row" :class="{ 'field-row--error': errors.cnpj }">
+            <label for="cnpj" class="field-label">CNPJ</label>
+            <BaseInput
+              id="cnpj"
+              type="text"
+              placeholder="00.000.000/0000-00"
+              v-model="form.cnpj"
+              :error="errors.cnpj"
+              required
+            />
+          </div>
 
-          <BaseInput
-            id="address"
-            label="Endereço (opcional)"
-            type="text"
-            placeholder="Rua das Flores, 123"
-            v-model="form.address"
-          />
+          <div class="field-row" :class="{ 'field-row--error': errors.email }">
+            <label for="email" class="field-label">Email</label>
+            <BaseInput
+              id="email"
+              type="email"
+              placeholder="contato@empresa.com"
+              v-model="form.email"
+              :error="errors.email"
+              required
+            />
+          </div>
 
-          <BaseInput
-            id="email"
-            label="Email"
-            type="email"
-            placeholder="contato@empresa.com"
-            v-model="form.email"
-            :error="errors.email"
-            required
-          />
-
-          <BaseInput
-            id="website"
-            label="Site (opcional)"
-            type="url"
-            placeholder="https://www.empresa.com"
-            v-model="form.website"
-          />
-
-          <BaseInput
-            id="phone"
-            label="Telefone"
-            type="tel"
-            placeholder="(11) 99999-9999"
-            v-model="form.phone"
-            :error="errors.phone"
-            required
-          />
+          <div class="field-row" :class="{ 'field-row--error': errors.phone }">
+            <label for="phone" class="field-label">Telefone</label>
+            <BaseInput
+              id="phone"
+              type="tel"
+              placeholder="(11) 99999-9999"
+              v-model="form.phone"
+              :error="errors.phone"
+              required
+            />
+          </div>
         </div>
 
         <div class="form-actions">
-          <button type="button" class="secondary-button" @click="goBack">Voltar</button>
-          <PrimaryButton type="submit" :loading="loading">Criar Empresa</PrimaryButton>
+          <button type="button" class="ghost-button" @click="goBack">Voltar</button>
+
+          <PrimaryButton type="submit" :loading="loading">
+            <span class="btn-label">
+              Criar empresa
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M4.16666 10H15.8333M15.8333 10L10 4.16666M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </PrimaryButton>
         </div>
+
         <p v-if="submitError" class="error-message">{{ submitError }}</p>
       </form>
     </section>
@@ -98,9 +96,7 @@ const submitError = ref('');
 const form = reactive({
   name: '',
   cnpj: '',
-  address: '',
   email: '',
-  website: '',
   phone: '',
 });
 
@@ -146,15 +142,16 @@ const handleSubmit = async () => {
 
   loading.value = true;
   try {
-    const created = await companyService.createCompany(form.name.trim(), form.cnpj.trim());
+    const created = await companyService.createCompany(form.name.trim(), form.cnpj.trim(), {
+      email: form.email.trim(),
+      phone: form.phone.replace(/\D/g, ''),
+    });
 
     companyStore.setCompanyData({
       id: created.id,
       name: created.name,
       cnpj: created.cnpj,
-      address: form.address,
       email: form.email,
-      website: form.website,
       phone: form.phone,
       owner: form.email,
       role: 'owner',
@@ -181,76 +178,112 @@ const handleSubmit = async () => {
 <style scoped>
 .company-create-page {
   min-height: calc(100vh - 65px);
-  padding: 0;
-  background-color: var(--color-surface);
-  display: block;
+  display: flex;
+  justify-content: center;
+  padding: 64px 20px;
+  background: var(--color-bg);
 }
 
 .company-create-container {
   width: 100%;
-  padding: 48px 20px;
-  background: var(--color-surface);
+  max-width: 620px;
 }
 
 .header-block {
-  margin-bottom: 40px;
-  padding: 0 0 24px 0;
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 8px;
 }
 
-.eyebrow {
-  color: var(--color-success-dark);
+.kicker {
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 12px;
-  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 14px;
 }
 
 h1 {
-  font-size: 36px;
-  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
   color: var(--color-text);
+  margin-bottom: 14px;
+  text-wrap: balance;
+}
+
+.accent-text {
+  background: var(--color-success-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .description {
   color: var(--color-text-secondary);
-  line-height: 1.75;
-  max-width: 680px;
   font-size: 16px;
+  line-height: 1.7;
+  max-width: 480px;
 }
 
-.company-form {
-  display: grid;
-  gap: 28px;
-  max-width: 600px;
+.field-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 36px;
 }
 
-.field-grid {
+.field-row {
   display: grid;
+  grid-template-columns: 180px 1fr;
+  align-items: center;
   gap: 24px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  padding: 22px 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: border-color 0.2s ease;
 }
 
-label {
-  display: grid;
-  gap: 10px;
+.field-row:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.field-row:focus-within {
+  border-bottom-color: var(--color-primary);
+}
+
+.field-row:focus-within .field-label {
+  color: var(--color-primary);
+}
+
+.field-row--error {
+  border-bottom-color: var(--color-danger);
+}
+
+.field-label {
+  font-size: 14px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
 }
 
-input {
-  width: 100%;
-  min-height: 52px;
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  padding: 14px 16px;
-  background: var(--color-surface-soft);
-  color: var(--color-text);
+.field-row :deep(.input-group) {
+  margin-bottom: 0;
+}
+
+.field-row :deep(.custom-input) {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
   font-size: 16px;
 }
 
-input:focus {
-  outline: none;
-  border-color: var(--color-success-dark);
+.field-row :deep(.custom-input:focus) {
+  box-shadow: none;
+  background: transparent;
+}
+
+.field-row--error :deep(.custom-input) {
+  background: transparent;
 }
 
 .form-actions {
@@ -258,85 +291,61 @@ input:focus {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-top: 6px;
+  margin-top: 36px;
 }
 
-.form-actions button,
-.form-actions ::v-deep(.primary-btn) {
+.form-actions .ghost-button,
+.form-actions :deep(.primary-btn) {
   flex: 1;
-  min-width: 120px;
+  min-width: 150px;
+}
+
+.btn-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ghost-button {
+  padding: 15px 24px;
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  border: 1.5px solid var(--color-text-tertiary);
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.ghost-button:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+}
+
+.error-message {
+  color: var(--color-danger);
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .company-create-page {
-    padding: 0;
+    padding: 40px 16px;
   }
 
-  .company-create-container {
-    padding: 32px 16px;
-  }
-
-  h1 {
-    font-size: 28px;
-  }
-
-  .field-grid {
+  .field-row {
     grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 18px 0;
   }
 
   .form-actions {
     flex-direction: column;
   }
-
-  .primary-button {
-    width: 100%;
-  }
-
-  .secondary-button {
-    width: 100%;
-    order: 2;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 24px;
-  }
-
-  .company-create-container {
-    padding: 24px 16px;
-  }
-
-  .header-block {
-    margin-bottom: 28px;
-  }
-}
-
-.primary-button,
-.secondary-button {
-  padding: 16px 24px;
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
-  min-width: 170px;
-}
-
-.primary-button {
-  border: none;
-  background: var(--color-success-gradient);
-  color: var(--color-surface);
-}
-
-.secondary-button {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
-}
-
-.error-message {
-  color: #ef4444;
-  font-size: 0.9rem;
-  margin: 0;
 }
 </style>

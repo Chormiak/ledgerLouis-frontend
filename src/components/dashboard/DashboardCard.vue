@@ -64,17 +64,8 @@ const trendClass = computed(() => ({
   min-height: 100%;
   padding: 18px;
   border: 1px solid var(--color-border);
-  border-radius: 24px;
-  background: rgba(var(--color-surface-rgb), 0.94);
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
-}
-
-.dashboard-card--positive {
-  box-shadow: 0 14px 40px rgba(29, 205, 108, 0.08);
-}
-
-.dashboard-card--negative {
-  box-shadow: 0 14px 40px rgba(229, 33, 36, 0.08);
+  border-radius: 16px;
+  background: var(--color-surface);
 }
 
 .card-top {

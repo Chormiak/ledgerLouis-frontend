@@ -37,8 +37,17 @@ export interface CompanyDto {
 }
 
 export default class CompanyService {
-  async createCompany(name: string, cnpj: string): Promise<CompanyDto> {
-    const response = await axiosInstance.post<CompanyDto>('/companies', { name, cnpj });
+  async createCompany(
+    name: string,
+    cnpj: string,
+    options?: { email?: string; phone?: string },
+  ): Promise<CompanyDto> {
+    const response = await axiosInstance.post<CompanyDto>('/companies', {
+      name,
+      cnpj,
+      ...(options?.email ? { email: options.email } : {}),
+      ...(options?.phone ? { phone: options.phone } : {}),
+    });
     return response.data;
   }
 

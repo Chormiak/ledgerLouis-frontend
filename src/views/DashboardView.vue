@@ -1,8 +1,5 @@
 <template>
   <main class="dashboard-page">
-    <div class="dashboard-backdrop dashboard-backdrop--left" aria-hidden="true"></div>
-    <div class="dashboard-backdrop dashboard-backdrop--right" aria-hidden="true"></div>
-
     <div class="dashboard-shell">
       <DashboardHeader />
 
@@ -87,8 +84,8 @@
       </section>
 
       <section class="charts-grid" aria-label="Gráficos financeiros">
-        <RevenueChart />
-        <TagsDistributionCard />
+        <RevenueChart :transactions="filteredTransactions" />
+        <TagsDistributionCard :transactions="filteredTransactions" />
       </section>
 
       <section class="insights-grid" aria-label="Estatísticas de gastos">
@@ -202,48 +199,16 @@ const countDescription = computed(() =>
 
 <style scoped>
 .dashboard-page {
-  position: relative;
-  overflow-x: hidden;
   min-height: calc(100vh - 165px);
-  margin-top: -10px;
   padding: 30px 16px 32px;
-  background:
-    radial-gradient(circle at top left, rgba(39, 185, 105, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(29, 205, 108, 0.12), transparent 32%),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 .dashboard-shell {
-  position: relative;
-  z-index: 1;
   display: grid;
   gap: 18px;
   max-width: 1240px;
   margin: 0 auto;
-}
-
-.dashboard-backdrop {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(24px);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.dashboard-backdrop--left {
-  top: 84px;
-  left: -40px;
-  width: 180px;
-  height: 180px;
-  background: rgba(29, 205, 108, 0.16);
-}
-
-.dashboard-backdrop--right {
-  right: -50px;
-  top: 320px;
-  width: 220px;
-  height: 220px;
-  background: rgba(229, 33, 36, 0.12);
 }
 
 .metrics-grid,

@@ -2,26 +2,37 @@
   <main class="company-join-page">
     <section class="company-join-container">
       <header class="header-block">
-        <p class="eyebrow">Entrar em Empresa</p>
-        <h1>Conecte-se a uma empresa existente</h1>
+        <p class="kicker">Entrar em empresa</p>
+        <h1>Conecte-se a uma <span class="accent-text">empresa</span> existente</h1>
         <p class="description">
           Digite o código de acesso para entrar em uma empresa.
         </p>
       </header>
 
       <form class="company-form" @submit.prevent="handleJoin">
-        <BaseInput
-          id="companyCode"
-          label="Código de acesso"
-          type="text"
-          placeholder="12345"
-          v-model="companyCode"
-          required
-        />
+        <div class="code-row" :class="{ 'code-row--error': errors.companyCode }">
+          <label for="companyCode" class="field-label">Código de acesso</label>
+          <BaseInput
+            id="companyCode"
+            type="text"
+            placeholder="• • • • •"
+            v-model="companyCode"
+            :error="errors.companyCode"
+            required
+          />
+        </div>
 
         <div class="form-actions">
-          <button type="button" class="secondary-button" @click="goBack">Voltar</button>
-          <PrimaryButton type="submit" :loading="loading">Entrar</PrimaryButton>
+          <button type="button" class="ghost-button" @click="goBack">Voltar</button>
+
+          <PrimaryButton type="submit" :loading="loading">
+            <span class="btn-label">
+              Entrar
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M4.16666 10H15.8333M15.8333 10L10 4.16666M15.8333 10L10 15.8333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </PrimaryButton>
         </div>
       </form>
     </section>
@@ -78,70 +89,98 @@ const handleJoin = () => {
 <style scoped>
 .company-join-page {
   min-height: calc(100vh - 65px);
-  padding: 0;
-  background-color: var(--color-surface);
-  display: block;
+  display: flex;
+  justify-content: center;
+  padding: 64px 20px;
+  background: var(--color-bg);
 }
 
 .company-join-container {
   width: 100%;
-  padding: 48px 20px;
-  background: var(--color-surface);
+  max-width: 480px;
 }
 
 .header-block {
-  margin-bottom: 40px;
-  padding: 0 0 24px 0;
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 8px;
 }
 
-.eyebrow {
-  color: var(--color-success-dark);
+.kicker {
+  font-size: 13px;
   font-weight: 700;
-  margin-bottom: 12px;
-  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 14px;
 }
 
 h1 {
-  font-size: 36px;
-  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
   color: var(--color-text);
+  margin-bottom: 14px;
+  text-wrap: balance;
+}
+
+.accent-text {
+  background: var(--color-success-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .description {
   color: var(--color-text-secondary);
-  line-height: 1.75;
-  max-width: 680px;
   font-size: 16px;
+  line-height: 1.7;
 }
 
-.company-form {
-  display: grid;
-  gap: 28px;
-  max-width: 600px;
+.code-row {
+  margin-top: 40px;
+  padding-bottom: 18px;
+  border-bottom: 1.5px solid var(--color-border);
+  transition: border-color 0.2s ease;
 }
 
-label {
-  display: grid;
-  gap: 10px;
-  font-weight: 600;
-  color: var(--color-text);
+.code-row:focus-within {
+  border-bottom-color: var(--color-primary);
 }
 
-input {
-  width: 100%;
-  min-height: 52px;
-  border: 1px solid var(--color-border);
-  border-radius: 18px;
-  padding: 14px 16px;
-  background: var(--color-surface-soft);
-  color: var(--color-text);
-  font-size: 16px;
+.code-row--error {
+  border-bottom-color: var(--color-danger);
 }
 
-input:focus {
-  outline: none;
-  border-color: var(--color-success-dark);
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  margin-bottom: 18px;
+}
+
+.code-row :deep(.input-group) {
+  margin-bottom: 0;
+}
+
+.code-row :deep(.custom-input) {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+}
+
+.code-row :deep(.custom-input:focus) {
+  box-shadow: none;
+  background: transparent;
 }
 
 .form-actions {
@@ -149,75 +188,54 @@ input:focus {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-top: 6px;
+  margin-top: 36px;
 }
 
-.form-actions button,
-.form-actions ::v-deep(.primary-btn) {
+.form-actions .ghost-button,
+.form-actions :deep(.primary-btn) {
   flex: 1;
-  min-width: 120px;
+  min-width: 150px;
+}
+
+.btn-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ghost-button {
+  padding: 15px 24px;
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  border: 1.5px solid var(--color-text-tertiary);
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.ghost-button:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text);
+  background: var(--color-surface-alt);
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .company-join-page {
-    padding: 0;
+    padding: 40px 16px;
   }
 
-  .company-join-container {
-    padding: 32px 16px;
-  }
-
-  h1 {
-    font-size: 28px;
+  .code-row :deep(.custom-input) {
+    font-size: 1.5rem;
+    letter-spacing: 0.3em;
   }
 
   .form-actions {
     flex-direction: column;
   }
-
-  .primary-button {
-    width: 100%;
-  }
-
-  .secondary-button {
-    width: 100%;
-    order: 2;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 24px;
-  }
-
-  .company-join-container {
-    padding: 24px 16px;
-  }
-
-  .header-block {
-    margin-bottom: 28px;
-  }
-}
-
-.primary-button,
-.secondary-button {
-  padding: 16px 24px;
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
-  min-width: 170px;
-}
-
-.primary-button {
-  border: none;
-  background: var(--color-success-gradient);
-  color: var(--color-surface);
-}
-
-.secondary-button {
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
 }
 </style>

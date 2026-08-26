@@ -21,24 +21,6 @@ export interface CompanyParticipant {
   createdAt?: string;
 }
 
-// Despesa Recorrente
-export interface RecurringExpenseDistribution {
-  id?: string;
-  description: string;
-  totalAmount: number;
-  frequency: 'weekly' | 'monthly' | 'yearly';
-  startDate: string;
-  endDate?: string;
-  participants: Array<{
-    participantId?: string;
-    participantName: string;
-    amount: number;
-    quantity?: number;
-  }>;
-  category?: string;
-  createdAt?: string;
-}
-
 // Resposta do servidor para os endpoints
 export interface CategoryResponse {
   success: boolean;
@@ -52,8 +34,3 @@ export interface ParticipantResponse {
   data?: CompanyParticipant | CompanyParticipant[];
 }
 
-export interface RecurringExpenseResponse {
-  success: boolean;
-  message?: string;
-  data?: RecurringExpenseDistribution;
-}

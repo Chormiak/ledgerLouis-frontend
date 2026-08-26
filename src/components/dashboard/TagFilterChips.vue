@@ -90,10 +90,9 @@ const activeChipStyle = (id: string) => ({
   display: grid;
   gap: 10px;
   padding: 16px 18px;
-  border-radius: 24px;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+  background: var(--color-surface);
 }
 
 .tag-filter-kicker {
@@ -140,14 +139,13 @@ const activeChipStyle = (id: string) => ({
 }
 
 .tag-chip:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+  border-color: var(--color-text-secondary);
 }
 
 .tag-chip--active {
-  background: var(--color-text);
-  color: white;
-  border-color: var(--color-text);
+  background: var(--color-primary);
+  color: var(--color-surface);
+  border-color: var(--color-primary);
 }
 
 .tag-chip-dot {

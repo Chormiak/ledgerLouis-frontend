@@ -62,7 +62,7 @@ const handleLogin = async () => {
       router.push('/');
     }, 1000);
 
-  
+
   } catch (error: any) {
     response.status = 'error';
     response.message =
@@ -79,55 +79,93 @@ const handleLogin = async () => {
 
 <template>
   <ResponsePopUp :status="response.status" :message="response.message" :show="response.show" @close="response.show = false" />
-  <div class="login-card">
-    <form @submit.prevent="handleLogin" class="form-content">
-      
-      <BaseInput 
-        label="E-mail ou CNPJ"
-        placeholder="Digite seu acesso"
-        v-model="loginData.email"
-      />
-      
-      <BaseInput 
-        label="Senha"
-        type="password"
-        placeholder="••••••••"
-        v-model="loginData.password"
-      />
 
-      <div class="extra-options">
-        <label class="remember-me">
-          <input type="checkbox" v-model="loginData.rememberMe"> 
-          Lembrar de mim
-        </label>
-        <a href="#" class="forgot-password">Esqueceu a senha?</a>
+  <form @submit.prevent="handleLogin" class="auth-form">
+    <div class="field-list">
+      <div class="field-row">
+        <label for="loginEmail" class="field-label">E-mail ou CNPJ</label>
+        <BaseInput id="loginEmail" placeholder="Digite seu acesso" v-model="loginData.email" />
       </div>
 
-      <div class="actions">
-        <PrimaryButton type="submit">Entrar</PrimaryButton>
+      <div class="field-row">
+        <label for="loginPassword" class="field-label">Senha</label>
+        <BaseInput id="loginPassword" type="password" placeholder="••••••••" v-model="loginData.password" />
       </div>
-    </form>
-  </div>
+    </div>
+
+    <div class="extra-options">
+      <label class="remember-me">
+        <input type="checkbox" v-model="loginData.rememberMe">
+        Lembrar de mim
+      </label>
+      <a href="#" class="forgot-password">Esqueceu a senha?</a>
+    </div>
+
+    <PrimaryButton type="submit">Entrar</PrimaryButton>
+  </form>
 </template>
 
 <style scoped>
-.login-card {
-  background-color: var(--color-surface);
-  width: 100%;
-  max-width: 400px;
-  border-radius: 0 0 20px 20px; 
-  overflow: hidden;
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.form-content {
-  padding: 2rem 1.5rem;
+.field-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.field-row:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.field-row:focus-within {
+  border-bottom-color: var(--color-primary);
+}
+
+.field-row:focus-within .field-label {
+  color: var(--color-primary);
+}
+
+.field-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.field-row :deep(.input-group) {
+  margin-bottom: 0;
+}
+
+.field-row :deep(.custom-input) {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 4px 0;
+  font-size: 15px;
+}
+
+.field-row :deep(.custom-input:focus) {
+  box-shadow: none;
+  background: transparent;
 }
 
 .extra-options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
   font-family: var(--font-body);
   font-size: 0.85rem;
 }
@@ -150,10 +188,10 @@ const handleLogin = async () => {
   text-decoration: underline;
 }
 
-.actions {
-  margin-top: 1rem;
-  width: 100%;
-  display: flex;
-  justify-content: center;
+@media (max-width: 400px) {
+  .field-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
-</style>    
+</style>

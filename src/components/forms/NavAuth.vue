@@ -7,61 +7,58 @@ const emit = defineEmits(['change-tab']);
 </script>
 
 <template>
-  <nav class="auth-nav">
-    <button 
-      :class="['nav-item', { active: props.activeTab === 'login' }]" 
+  <nav class="auth-tabs">
+    <button
+      :class="['tab-item', { active: props.activeTab === 'login' }]"
       @click="emit('change-tab', 'login')"
     >
       Entrar
     </button>
-    
-    <button 
-      :class="['nav-item', { active: props.activeTab === 'register' }]" 
+
+    <button
+      :class="['tab-item', { active: props.activeTab === 'register' }]"
       @click="emit('change-tab', 'register')"
     >
-      Registrar-se
+      Criar conta
     </button>
   </nav>
 </template>
 
 <style scoped>
-.auth-nav {
+.auth-tabs {
   display: flex;
-  background-color: var(--color-primary);
-  width: 100%;
-  height: 60px;
-  border-radius: 20px 20px 0 0;
-  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
 }
 
-.nav-item {
+.tab-item {
+  position: relative;
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  padding: 16px;
   border: none;
   background: transparent;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1rem;
-  color: rgba(var(--color-surface-rgb), 0.85);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.2s ease;
 }
 
+.tab-item:hover {
+  color: var(--color-text);
+}
 
-.nav-item.active {
-  background-color: var(--color-surface);
-  color: var(--color-success);
+.tab-item.active {
+  color: var(--color-primary);
 }
-.nav-item:first-child.active {
-  border-radius: 0 40px 0 0;
-}
-.nav-item:last-child.active {
-  border-radius: 40px 0 0 0;
-}
-.nav-item i {
-  font-size: 1.2rem;
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-primary);
 }
 </style>

@@ -2,10 +2,17 @@
 import { computed } from 'vue';
 import { useTagStore } from '@/stores/tagStore';
 import { useTransactionStore } from '@/stores/transactionStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { colorForTag } from '@/utils/tagColor';
+import type { TransactionDto } from '@/services/transactionService';
+
+const props = defineProps<{ transactions?: TransactionDto[] }>();
 
 const tagStore = useTagStore();
 const transactionStore = useTransactionStore();
+const themeStore = useThemeStore();
+const isDark = computed(() => themeStore.theme === 'dark');
+const source = computed(() => props.transactions ?? transactionStore.transactions);
 
 interface TagAggregate {
   id: string;
@@ -20,7 +27,7 @@ const formatCurrency = (value: number) =>
 const aggregates = computed<TagAggregate[]>(() => {
   const totals = new Map<string, number>();
 
-  for (const transaction of transactionStore.transactions) {
+  for (const transaction of source.value) {
     const tags = tagStore.transactionTagsMap[transaction.id] ?? [];
     for (const tag of tags) {
       totals.set(tag.id, (totals.get(tag.id) ?? 0) + transaction.amount);
@@ -70,20 +77,20 @@ const chartOptions = computed(() => ({
             show: true,
             offsetY: 16,
             fontSize: '12px',
-            color: '#64748b',
+            color: isDark.value ? '#a3aab8' : '#64748b',
           },
           value: {
             show: true,
             fontSize: '22px',
             fontWeight: 800,
-            color: '#111827',
+            color: isDark.value ? '#f1f3f6' : '#111827',
             formatter: (value: string) => formatCurrency(Number(value)),
           },
           total: {
             show: true,
             label: 'Total marcado',
             fontSize: '13px',
-            color: '#64748b',
+            color: isDark.value ? '#a3aab8' : '#64748b',
             formatter: () => formatCurrency(grandTotal.value),
           },
         },
@@ -91,6 +98,7 @@ const chartOptions = computed(() => ({
     },
   },
   tooltip: {
+    theme: isDark.value ? 'dark' : 'light',
     y: {
       formatter: (value: number) => formatCurrency(value),
     },
@@ -134,10 +142,9 @@ const chartOptions = computed(() => ({
 <style scoped>
 .chart-card {
   padding: 18px;
-  border-radius: 28px;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
+  background: var(--color-surface);
 }
 
 .chart-header {
@@ -170,6 +177,8 @@ h2 {
 .expenses-layout {
   display: grid;
   gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: center;
 }
 
 .donut-panel {
@@ -181,6 +190,7 @@ h2 {
 .chart-wrapper {
   width: 100%;
   max-width: 300px;
+  min-width: 0;
 }
 
 .breakdown-list {
@@ -222,12 +232,6 @@ h2 {
   font-family: var(--font-body) !important;
 }
 
-@media (min-width: 700px) {
-  .expenses-layout {
-    grid-template-columns: minmax(0, 1.05fr) minmax(230px, 0.95fr);
-    align-items: center;
-  }
-}
 
 @media (min-width: 768px) {
   .chart-card {

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { useAnalyticsStore } from '@/stores/analyticsStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { colorForTag } from '@/utils/tagColor';
 
 const analyticsStore = useAnalyticsStore();
+const themeStore = useThemeStore();
 
 onMounted(() => {
   if (!analyticsStore.overallStats) analyticsStore.fetchOverallStats();
@@ -42,11 +44,69 @@ const overallChartSeries = computed(() => {
   const actualData: (number | null)[] = overall.value.months.map((point) => point.total);
   const forecastLead: (number | null)[] = overall.value.months.map(() => null);
 
+  // Ancora o último ponto real no início da série de previsão, para o segmento
+  // tracejado conectar visualmente ao fim da linha em vez de aparecer como um ponto solto.
+  if (forecastLead.length > 0) {
+    forecastLead[forecastLead.length - 1] = actualData[actualData.length - 1] ?? null;
+  }
+
   return [
     { name: 'Gastos mensais', data: [...actualData, null] },
     {
       name: 'Previsão',
       data: [...forecastLead, overall.value.forecastNextMonth],
+    },
+  ];
+});
+
+const isDark = computed(() => themeStore.theme === 'dark');
+const axisLabelColor = computed(() => (isDark.value ? '#a3aab8' : '#64748b'));
+const gridLineColor = computed(() =>
+  isDark.value ? 'rgba(163, 170, 184, 0.14)' : 'rgba(148, 163, 184, 0.16)',
+);
+const meanLineColor = computed(() => (isDark.value ? '#7c8494' : '#94a3b8'));
+
+// Faixa de ±1 desvio padrão em torno da média: com menos de 2 meses a variância
+// não tem significado (fica 0), então a faixa fica escondida para não sugerir precisão falsa.
+const deviationAnnotations = computed(() => {
+  if (!overall.value || overall.value.months.length < 2) return [];
+
+  const { mean: meanValue, standardDeviation } = overall.value;
+
+  return [
+    {
+      y: meanValue - standardDeviation,
+      y2: meanValue + standardDeviation,
+      borderColor: 'transparent',
+      fillColor: '#27B969',
+      opacity: 0.12,
+      label: {
+        text: '± 1 desvio padrão',
+        position: 'left',
+        offsetX: 10,
+        style: {
+          color: axisLabelColor.value,
+          background: 'transparent',
+          fontSize: '11px',
+          fontWeight: 600,
+        },
+      },
+    },
+    {
+      y: meanValue,
+      borderColor: meanLineColor.value,
+      strokeDashArray: 4,
+      label: {
+        text: 'Média',
+        position: 'right',
+        offsetX: -10,
+        style: {
+          color: axisLabelColor.value,
+          background: 'transparent',
+          fontSize: '11px',
+          fontWeight: 600,
+        },
+      },
     },
   ];
 });
@@ -78,24 +138,52 @@ const overallChartOptions = computed(() => ({
   },
   dataLabels: { enabled: false },
   grid: {
-    borderColor: 'rgba(148, 163, 184, 0.16)',
+    borderColor: gridLineColor.value,
     strokeDashArray: 4,
   },
   xaxis: {
     categories: overallChartCategories.value,
-    labels: { style: { colors: '#64748b', fontSize: '12px' } },
+    labels: { style: { colors: axisLabelColor.value, fontSize: '12px' } },
   },
   yaxis: {
     labels: {
-      style: { colors: '#64748b', fontSize: '12px' },
+      style: { colors: axisLabelColor.value, fontSize: '12px' },
       formatter: (value: number) => `R$ ${Math.round(value / 100) / 10}k`,
     },
   },
   legend: { show: false },
+  annotations: {
+    yaxis: deviationAnnotations.value,
+  },
   tooltip: {
-    y: { formatter: (value: number) => formatCurrency(value) },
+    theme: isDark.value ? 'dark' : 'light',
+    y: {
+      formatter: (value: number, opts?: { seriesIndex?: number }) => {
+        const isForecast = opts?.seriesIndex === 1;
+        if (isForecast && overall.value) {
+          return `${formatCurrency(value)} (± ${formatCurrency(overall.value.standardDeviation)})`;
+        }
+        return formatCurrency(value);
+      },
+    },
   },
 }));
+
+// Sparkline por tag: mesma série mensal já retornada pelo backend para a visão
+// "Agrupar por tag", só que hoje descartada — aqui vira um mini-gráfico de área.
+const tagSparklineOptions = (tagId: string) => ({
+  chart: { type: 'area', sparkline: { enabled: true } },
+  stroke: { curve: 'smooth', width: 2 },
+  fill: {
+    type: 'gradient',
+    gradient: { shadeIntensity: 0.4, opacityFrom: 0.35, opacityTo: 0.02 },
+  },
+  colors: [colorForTag(tagId)],
+  tooltip: {
+    theme: isDark.value ? 'dark' : 'light',
+    y: { formatter: (value: number) => formatCurrency(value) },
+  },
+});
 </script>
 
 <template>
@@ -168,6 +256,16 @@ const overallChartOptions = computed(() => ({
             <span>{{ stat.count }} despesa(s)</span>
           </div>
 
+          <div v-if="stat.months.length > 1" class="tag-stats-sparkline">
+            <apexchart
+              type="area"
+              height="36"
+              width="90"
+              :options="tagSparklineOptions(stat.tagId)"
+              :series="[{ data: stat.months.map((m) => m.total) }]"
+            />
+          </div>
+
           <div class="tag-stats-metrics">
             <div>
               <span>Média</span>
@@ -191,10 +289,9 @@ const overallChartOptions = computed(() => ({
 <style scoped>
 .chart-card {
   padding: 18px;
-  border-radius: 28px;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
+  background: var(--color-surface);
 }
 
 .chart-header {
@@ -323,12 +420,17 @@ h2 {
 
 .tag-stats-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--color-surface-soft);
+}
+
+.tag-stats-sparkline {
+  flex-shrink: 0;
+  line-height: 0;
 }
 
 .tag-stats-dot {
@@ -357,7 +459,9 @@ h2 {
 
 .tag-stats-metrics {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px 16px;
 }
 
 .tag-stats-metrics > div {
@@ -390,9 +494,13 @@ h2 {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 720px) {
   .tag-stats-row {
     grid-template-columns: 1fr;
+  }
+
+  .tag-stats-sparkline {
+    display: none;
   }
 
   .tag-stats-metrics {

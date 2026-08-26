@@ -1,112 +1,96 @@
 <template>
-  <main class="company-admin-page">
-    <div class="page-inner">
-    <!-- Header da Página -->
-    <div class="admin-header">
-      <div class="header-content">
-        <div class="avatar-large">{{ companyName.charAt(0).toUpperCase() }}</div>
-        <div>
-          <h1>{{ companyName }}</h1>
-          <p>Painel de Administração da Empresa</p>
+  <main class="settings-page">
+    <div class="settings-container">
+      <header class="page-header">
+        <div class="identity">
+          <div class="avatar">{{ companyName.charAt(0).toUpperCase() }}</div>
+          <div>
+            <p class="kicker">Sua empresa</p>
+            <h1>{{ companyName }}</h1>
+          </div>
         </div>
-      </div>
-      <button class="btn-leave" @click="leaveCompany">Sair da Empresa</button>
-    </div>
-
-    <!-- Informações da Empresa -->
-    <section class="info-section">
-      <h3>📋 Informações da Empresa</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <label>Nome</label>
-          <span>{{ companyStore.company.name }}</span>
-        </div>
-        <div class="info-item">
-          <label>CNPJ</label>
-          <span>{{ companyStore.company.cnpj || 'Não informado' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Email</label>
-          <span>{{ companyStore.company.email || 'Não informado' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Telefone</label>
-          <span>{{ companyStore.company.phone || 'Não informado' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Endereço</label>
-          <span>{{ companyStore.company.address || 'Não informado' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Site</label>
-          <span>{{ companyStore.company.website || 'Não informado' }}</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="members-section">
-      <header class="members-header">
-        <div>
-          <h3>👥 Membros da Empresa</h3>
-          <p class="members-subtitle">Convide e acompanhe quem faz parte da sua empresa.</p>
-        </div>
-        <button class="secondary-button" @click="loadMembers">Atualizar</button>
+        <button class="danger-button" @click="leaveCompany">Sair da empresa</button>
       </header>
 
-      <div v-if="membersLoading" class="empty-members">
-        <p>Carregando membros...</p>
-      </div>
+      <section class="panel">
+        <h2 class="panel-title">Dados da empresa</h2>
 
-      <div v-else-if="members.length === 0" class="empty-members">
-        <p>Nenhum membro encontrado para esta empresa.</p>
-      </div>
-
-      <ul class="members-list" v-else>
-        <li v-for="member in members" :key="member.userId">
-          <div>
-            <strong>{{ member.name }}</strong>
-            <span>{{ member.email }}</span>
+        <div class="field-list">
+          <div class="field-row">
+            <span class="field-label">Nome</span>
+            <span class="field-value">{{ companyStore.company.name || 'Não informado' }}</span>
           </div>
-          <span class="member-role">{{ member.role }}</span>
-        </li>
-      </ul>
-
-      <section class="invite-card">
-        <h4>Convidar novo membro</h4>
-        <form @submit.prevent="handleAddMember" class="invite-form">
-          <BaseInput
-            id="memberEmail"
-            label="Email do membro"
-            type="email"
-            placeholder="email@dominio.com"
-            v-model="newMember.email"
-            :error="errors.email"
-            required
-          />
-
-          <label class="select-label" for="memberRole">Função</label>
-          <select id="memberRole" v-model="newMember.role">
-            <option value="owner">Owner</option>
-            <option value="admin">Admin</option>
-            <option value="viewer">Viewer</option>
-          </select>
-
-          <div class="form-actions">
-            <button type="submit" class="primary-button" :disabled="inviteLoading || !companyStore.company.id">
-              {{ inviteLoading ? 'Enviando...' : 'Convidar membro' }}
-            </button>
+          <div class="field-row">
+            <span class="field-label">CNPJ</span>
+            <span class="field-value">{{ companyStore.company.cnpj || 'Não informado' }}</span>
           </div>
-          <p v-if="inviteError" class="error-message">{{ inviteError }}</p>
-        </form>
+          <div class="field-row">
+            <span class="field-label">Email</span>
+            <span class="field-value">{{ companyStore.company.email || 'Não informado' }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Telefone</span>
+            <span class="field-value">{{ companyStore.company.phone || 'Não informado' }}</span>
+          </div>
+        </div>
       </section>
-    </section>
 
-    <!-- Componentes de Gerenciamento -->
-    <div class="management-container">
-      <TagManager />
-      <CategoryManager />
-      <RecurringExpenseManager />
-    </div>
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2 class="panel-title">Membros</h2>
+            <p class="panel-subtitle">Convide e acompanhe quem faz parte da sua empresa.</p>
+          </div>
+          <button class="ghost-button" @click="loadMembers">Atualizar</button>
+        </header>
+
+        <p v-if="membersLoading" class="empty-state">Carregando membros...</p>
+        <p v-else-if="members.length === 0" class="empty-state">Nenhum membro encontrado para esta empresa.</p>
+
+        <ul v-else class="member-list">
+          <li v-for="member in members" :key="member.userId">
+            <div>
+              <strong>{{ member.name }}</strong>
+              <span>{{ member.email }}</span>
+            </div>
+            <span class="role-badge" :data-role="member.role">{{ member.role }}</span>
+          </li>
+        </ul>
+
+        <form class="invite-row" @submit.prevent="handleAddMember">
+          <div class="invite-field">
+            <BaseInput
+              id="memberEmail"
+              label="Email do membro"
+              type="email"
+              placeholder="email@dominio.com"
+              v-model="newMember.email"
+              :error="errors.email"
+              required
+            />
+          </div>
+
+          <div class="invite-role">
+            <label for="memberRole">Função</label>
+            <select id="memberRole" v-model="newMember.role">
+              <option value="owner">Owner</option>
+              <option value="admin">Admin</option>
+              <option value="viewer">Viewer</option>
+            </select>
+          </div>
+
+          <PrimaryButton type="submit" :loading="inviteLoading" :disabled="!companyStore.company.id">
+            Convidar
+          </PrimaryButton>
+        </form>
+        <p v-if="inviteError" class="error-message">{{ inviteError }}</p>
+      </section>
+
+      <div class="management-stack">
+        <TagManager />
+        <CategoryManager />
+        <RecurringTransactionManager />
+      </div>
     </div>
   </main>
 </template>
@@ -117,9 +101,10 @@ import { useRouter } from 'vue-router';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import CompanyService, { type CompanyRole } from '@/services/companyService';
 import CategoryManager from '@/components/company/CategoryManager.vue';
-import RecurringExpenseManager from '@/components/company/RecurringExpenseManager.vue';
+import RecurringTransactionManager from '@/components/company/RecurringTransactionManager.vue';
 import TagManager from '@/components/company/TagManager.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
+import PrimaryButton from '@/components/ui/PrimaryButton.vue';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
@@ -236,94 +221,93 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.company-admin-page {
+.settings-page {
   min-height: calc(100vh - 65px);
-  padding: 32px 20px;
-  background-color: var(--color-surface-soft);
+  padding: 48px 20px 64px;
+  background: var(--color-bg);
 }
 
-.page-inner {
-  max-width: 1200px;
+.settings-container {
+  max-width: 760px;
   margin: 0 auto;
 }
 
-.admin-header {
+.page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
-  padding: 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  gap: 20px;
+  margin-bottom: 36px;
 }
 
-.header-content {
+.identity {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
+  min-width: 0;
 }
 
-.avatar-large {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
-  background: var(--color-primary);
-  color: white;
+.avatar {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--color-success-gradient);
+  color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 800;
 }
 
-.header-content h1 {
-  margin: 0 0 8px 0;
-  font-size: 2rem;
+.kicker {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--color-primary);
+  margin-bottom: 4px;
 }
 
-.header-content p {
+h1 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--color-text);
   margin: 0;
-  color: var(--color-text-secondary);
 }
 
-.btn-leave {
-  background: #ff4444;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+.danger-button {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  border-radius: var(--radius-input);
+  border: 1.5px solid var(--color-danger);
+  background: transparent;
+  color: var(--color-danger);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s;
   white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.btn-leave:hover {
-  background: #dd3333;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+.danger-button:hover {
+  background: var(--color-danger);
+  color: var(--color-surface);
 }
 
-.info-section {
+.panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 20px;
 }
 
-.members-section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 32px;
-}
-
-.members-header {
+.panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -331,215 +315,213 @@ onMounted(async () => {
   margin-bottom: 18px;
 }
 
-.members-header h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--color-primary);
-}
-
-.members-subtitle {
-  margin-top: 6px;
-  color: var(--color-text-secondary);
-  font-size: 0.92rem;
-}
-
-.members-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.members-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
-}
-
-.members-list strong {
-  display: block;
-  margin-bottom: 4px;
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
   color: var(--color-text);
+  margin: 0;
 }
 
-.members-list span {
+.panel-subtitle {
+  margin-top: 4px;
   color: var(--color-text-secondary);
   font-size: 0.9rem;
 }
 
-.member-role {
-  font-weight: 700;
-  color: var(--color-success-dark) !important;
-  text-transform: capitalize;
+.field-list {
+  display: flex;
+  flex-direction: column;
 }
 
-.invite-card {
-  margin-top: 10px;
-  padding: 18px;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
+.field-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.field-row:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.field-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.field-value {
+  font-size: 14.5px;
+  color: var(--color-text);
+}
+
+.ghost-button {
+  padding: 10px 18px;
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  border: 1.5px solid var(--color-text-tertiary);
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  white-space: nowrap;
+}
+
+.ghost-button:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text);
   background: var(--color-surface-alt);
 }
 
-.invite-card h4 {
-  margin: 0 0 14px;
-  color: var(--color-text);
+.empty-state {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
 }
 
-.invite-form {
-  display: grid;
-  gap: 14px;
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
+  display: flex;
+  flex-direction: column;
 }
 
-.select-label {
+.member-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.member-list li:first-child {
+  border-top: 1px solid var(--color-border);
+}
+
+.member-list strong {
+  display: block;
   color: var(--color-text);
+  font-size: 14.5px;
+}
+
+.member-list span {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.role-badge {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.role-badge[data-role='owner'] {
+  background: var(--color-primary-glow);
+  color: var(--color-primary);
+  border-color: transparent;
+}
+
+.invite-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.invite-field {
+  flex: 1;
+  min-width: 220px;
+}
+
+.invite-role {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invite-role label {
+  font-size: 0.85rem;
+  color: var(--color-placeholder);
   font-weight: 600;
+  margin-left: 12px;
 }
 
 select {
-  width: 100%;
-  min-height: 46px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  background: var(--color-surface);
+  min-height: 52px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-input);
+  padding: 14px 16px;
+  background: var(--color-bg);
   color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 1rem;
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-start;
+select:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 
 .error-message {
   color: var(--color-danger);
-  font-weight: 600;
+  font-size: 0.9rem;
+  margin: 12px 0 0;
 }
 
-.empty-members {
-  padding: 14px;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
-  margin-bottom: 16px;
-}
-
-.primary-button,
-.secondary-button {
-  border-radius: 999px;
-  padding: 10px 16px;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.primary-button {
-  border: none;
-  background: var(--color-success-gradient);
-  color: var(--color-surface);
-}
-
-.secondary-button {
-  border: 1px solid var(--color-success-dark);
-  background: transparent;
-  color: var(--color-success-dark);
-}
-
-.info-section h3 {
-  margin: 0 0 20px 0;
-  font-size: 1.2rem;
-  color: var(--color-primary);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.info-item {
+.management-stack {
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  background: var(--color-bg);
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-}
-
-.info-item label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-.info-item span {
-  font-size: 0.95rem;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.management-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  gap: 20px;
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
-  .company-admin-page {
-    padding: 20px 16px;
+@media (max-width: 640px) {
+  .settings-page {
+    padding: 32px 16px 48px;
   }
 
-  .admin-header {
+  .page-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
   }
 
-  .btn-leave {
-    align-self: flex-start;
+  .danger-button {
+    align-self: stretch;
   }
 
-  .header-content h1 {
-    font-size: 1.5rem;
+  .panel {
+    padding: 22px;
   }
 
-  .avatar-large {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
-  }
-
-  .info-grid {
+  .field-row {
     grid-template-columns: 1fr;
+    gap: 6px;
   }
 
-  .members-header {
+  .invite-row {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
-  .members-list li {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-content h1 {
-    font-size: 1.3rem;
-  }
-
-  .avatar-large {
-    width: 50px;
-    height: 50px;
-    font-size: 1.2rem;
+  .invite-row :deep(.primary-btn) {
+    width: 100%;
   }
 }
 </style>

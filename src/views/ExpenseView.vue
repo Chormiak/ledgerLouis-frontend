@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { useTransactionStore } from '@/stores/transactionStore';
+import { useTagStore } from '@/stores/tagStore';
 import { useRouter } from 'vue-router';
+import TagPicker from '@/components/forms/TagPicker.vue';
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
+const tagStore = useTagStore();
 
 const expenseData = reactive({
   amount: '',
   description: '',
   date: new Date().toISOString().split('T')[0],
 });
+
+const selectedTagIds = ref<string[]>([]);
 
 const response = reactive({
   status: '',
@@ -37,12 +42,16 @@ const handleAddExpense = async (e: Event) => {
       return;
     }
 
-    await transactionStore.createTransaction({
+    const created = await transactionStore.createTransaction({
       amount,
       description: expenseData.description,
       entryType: 'debit',
       date: expenseData.date,
     });
+
+    if (selectedTagIds.value.length > 0) {
+      await Promise.all(selectedTagIds.value.map((tagId) => tagStore.attachTag(created.id, tagId)));
+    }
 
     response.status = 'success';
     response.message = 'Despesa registrada com sucesso!';
@@ -112,18 +121,19 @@ const handleCancel = () => {
             >
           </div>
         </div>
-         
-        
+
+        <TagPicker v-model="selectedTagIds" />
+
         <div class="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             @click="handleCancel"
             class="btn btn-secondary"
           >
             Cancelar
           </button>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="btn btn-danger"
           >
             Salvar
