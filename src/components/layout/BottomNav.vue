@@ -169,24 +169,9 @@ const handleNavigate = (path: string) => {
   box-sizing: border-box;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
   .bottom-nav {
-    left: 50%;
-    width: auto;
-    min-width: 460px;
-    max-width: 560px;
-    bottom: 20px;
-    transform: translateX(-50%);
-    gap: 12px;
-    padding: 10px 20px 14px;
-    border-radius: 999px;
-    border: 1px solid var(--color-border);
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
-  }
-
-  .nav-item {
-    flex: initial;
-    min-width: 64px;
+    display: none;
   }
 }
 
