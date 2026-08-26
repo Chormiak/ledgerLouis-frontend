@@ -1,10 +1,67 @@
 <template>
   <div class="app-layout">
-    <TopNav />
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-text">LEDGER</span>
+      </div>
 
-    <main class="main-content">
-      <router-view />
-    </main>
+      <nav class="sidebar-nav">
+        <button
+          class="sidebar-item"
+          :class="{ active: route.path === '/' }"
+          @click="handleNavigate('/')"
+        >
+          <Home :size="22" />
+          <span>Início</span>
+        </button>
+
+        <button
+          class="sidebar-item"
+          :class="{ active: route.path === '/company/settings' }"
+          @click="handleNavigate('/company/settings')"
+        >
+          <Layers :size="22" />
+          <span>Gerenciamento</span>
+        </button>
+
+        <button
+          class="sidebar-item"
+          :class="{ active: route.path === '/reports' }"
+          @click="handleNavigate('/reports')"
+        >
+          <PieChart :size="22" />
+          <span>Relatórios</span>
+        </button>
+
+        <button
+          class="sidebar-item"
+          :class="{ active: route.path === '/settings' }"
+          @click="handleNavigate('/settings')"
+        >
+          <Settings :size="22" />
+          <span>Configurações</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-actions">
+        <button class="btn-action btn-income" @click="handleNavigate('/add/income')">
+          <ArrowUp :size="20" />
+          <span>Entrada</span>
+        </button>
+        <button class="btn-action btn-expense" @click="handleNavigate('/add/expense')">
+          <ArrowDown :size="20" />
+          <span>Saída</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <TopNav />
+
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
 
     <BottomNav />
 
@@ -21,17 +78,31 @@
 
 <script setup lang="ts">
 import { onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import BottomNav from './components/BottomNav.vue';
-import TopNav from './components/TopNav.vue';
+import { useRouter, useRoute } from 'vue-router';
+import { Home, Layers, PieChart, Settings, ArrowUp, ArrowDown } from 'lucide-vue-next';
 import { useCompanyStore } from './stores/CompanyStore';
 import { useUserStore } from './stores/userStore';
 import { useTransactionStore } from './stores/transactionStore';
+import BottomNav from './components/layout/BottomNav.vue';
+import TopNav from './components/layout/TopNav.vue';
 
 const router = useRouter();
+const route = useRoute();
 const companyStore = useCompanyStore();
 const userStore = useUserStore();
 const transactionStore = useTransactionStore();
+
+const handleNavigate = (path: string) => {
+  if (path === '/company/settings') {
+    if (!companyStore.company.hasCompany) {
+      router.push('/company');
+    } else {
+      router.push(path);
+    }
+  } else {
+    router.push(path);
+  }
+};
 
 onMounted(async () => {
   companyStore.loadCompanyData();
@@ -40,11 +111,9 @@ onMounted(async () => {
   }
 });
 
-// Observar mudanças no accessToken para sincronizar companies após login
 watch(
   () => userStore.accessToken,
   async (newToken, oldToken) => {
-    // Se o token mudou de vazio para algo, significa que o usuário fez login
     if (!oldToken && newToken) {
       console.log('Token detectado, sincronizando companies...');
       await companyStore.syncFromBackend();
@@ -52,7 +121,6 @@ watch(
   }
 );
 
-// Limpar transações quando não houver empresa selecionada
 watch(
   () => companyStore.company.hasCompany,
   (hasCompany) => {
@@ -62,11 +130,9 @@ watch(
   }
 );
 
-// Redirecionar para login quando o token for limpo (apenas se não estiver na página de login)
 watch(
   () => userStore.accessToken,
   (newToken, oldToken) => {
-    // Se o token foi removido (era algo e agora é vazio) e não estamos na página de login
     if (oldToken && !newToken && router.currentRoute.value.name !== 'entrar') {
       console.log('Token removido, redirecionando para login...');
       router.push({ name: 'entrar' });
@@ -76,7 +142,6 @@ watch(
 </script>
 
 <style>
-/* Reset básico para garantir que o layout ocupe a tela toda */
 body, html {
   margin: 0;
   padding: 0;
@@ -86,21 +151,127 @@ body, html {
 </style>
 
 <style scoped>
-/* Recomendo usar grid para a criação dos layouts - William */
 .app-layout {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar {
+  display: none;
 }
 
 .main-content {
   flex: 1;
-  /* Espaço para a TopNav não cobrir o topo (65px de altura + 10px de respiro) */
-  padding-top: 75px; 
-  
-  /* Espaço para a BottomNav não cobrir o rodapé (90px a 100px dependendo do seu design) */
-  padding-bottom: 100px; 
-  
+  padding-top: 75px;
+  padding-bottom: 100px;
   box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 240px;
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    padding: 20px 16px;
+    z-index: 1002;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  }
+
+  .sidebar-logo {
+    margin-bottom: 24px;
+  }
+
+  .logo-text {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: var(--color-text);
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .sidebar-item:hover {
+    background-color: var(--color-surface-soft);
+    color: var(--color-text);
+  }
+
+  .sidebar-item.active {
+    background-color: var(--color-surface-soft);
+    color: var(--color-success-alt);
+  }
+
+  .sidebar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 50px;
+    border: none;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    font-family: var(--font-body);
+  }
+
+  .btn-income {
+    background: var(--color-success-gradient);
+  }
+
+  .btn-expense {
+    background: var(--color-danger-gradient);
+  }
+
+  .main-content {
+    margin-left: 240px;
+    padding-top: 75px;
+    padding-bottom: 24px;
+  }
 }
 </style>

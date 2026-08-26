@@ -65,7 +65,7 @@ const trendClass = computed(() => ({
   padding: 18px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(var(--color-surface-rgb), 0.94);
   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
 }
 

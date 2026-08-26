@@ -17,84 +17,98 @@
               <span class="subtitle">Informações da sua conta</span>
             </div>
           </div>
-          <ChevronDown 
-            :size="24" 
+          <ChevronDown
+            :size="24"
             :class="{ 'rotated': isUserExpanded }"
             class="chevron"
           />
         </div>
 
-        <!-- Expandable User Content -->
         <transition name="slide">
           <div v-show="isUserExpanded" class="card-content">
-            <!-- Avatar Upload Section -->
-            <div class="section-divider">
-              <div class="avatar-area">
+            <div class="profile-identity">
+              <div class="avatar-wrap">
                 <div class="avatar-display">
-                  <img 
-                    v-if="displayAvatarUrl" 
-                    :src="displayAvatarUrl" 
+                  <img
+                    v-if="displayAvatarUrl"
+                    :src="displayAvatarUrl"
                     alt="Seu avatar"
                     class="avatar-image"
                   />
                   <div v-else class="avatar-placeholder">
-                    <User :size="48" />
+                    <User :size="32" />
                   </div>
                 </div>
 
-                <div class="avatar-actions">
-                  <input
-                    ref="fileInput"
-                    type="file"
-                    accept="image/*"
-                    @change="handleAvatarSelect"
-                    class="file-input"
-                    hidden
-                  />
-                  
-                  <button 
-                    @click="fileInput?.click()"
-                    :disabled="isUploading"
-                    class="btn-primary"
-                  >
-                    <span v-if="!isUploading">Trocar Foto de Perfil</span>
-                    <span v-else>Enviando...</span>
-                  </button>
+                <button
+                  type="button"
+                  class="avatar-edit-btn"
+                  :disabled="isUploading"
+                  @click="fileInput?.click()"
+                  aria-label="Alterar foto de perfil"
+                  title="Alterar foto de perfil"
+                >
+                  <Loader2 v-if="isUploading" :size="14" class="icon-spin" />
+                  <Camera v-else :size="14" />
+                </button>
 
-                  <div class="message-box">
-                    <p v-if="uploadError" class="error-msg">{{ uploadError }}</p>
-                    <p v-if="uploadSuccess" class="success-msg">{{ uploadSuccess }}</p>
-                  </div>
-                </div>
+                <input
+                  ref="fileInput"
+                  type="file"
+                  accept="image/*"
+                  @change="handleAvatarSelect"
+                  class="file-input"
+                  hidden
+                />
+              </div>
+
+              <div class="identity-text">
+                <template v-if="isLoadingUser">
+                  <span class="skeleton-line skeleton-line--name" />
+                  <span class="skeleton-line skeleton-line--email" />
+                </template>
+                <template v-else>
+                  <h3 class="user-name">{{ userInfo.name || 'Seu nome' }}</h3>
+                  <p class="user-email">{{ userInfo.email || 'seuemail@exemplo.com' }}</p>
+                </template>
               </div>
             </div>
 
-            <!-- User Information Section -->
-            <div class="info-grid">
-              <div class="info-item">
-                <label class="info-label">Nome Completo</label>
-                <div class="info-value">
-                  <span v-if="isLoadingUser">Carregando...</span>
-                  <span v-else-if="loadError" class="error-msg">{{ loadError }}</span>
-                  <span v-else>{{ userInfo.name }}</span>
-                </div>
-              </div>
+            <p v-if="loadError" class="feedback-msg error-msg">{{ loadError }}</p>
+            <p v-if="uploadError" class="feedback-msg error-msg">{{ uploadError }}</p>
+            <p v-if="uploadSuccess" class="feedback-msg success-msg">{{ uploadSuccess }}</p>
 
-              <div class="info-item">
-                <label class="info-label">Email</label>
-                <div class="info-value">
-                  <span v-if="isLoadingUser">Carregando...</span>
-                  <span v-else-if="loadError" class="error-msg">{{ loadError }}</span>
-                  <span v-else>{{ userInfo.email }}</span>
-                </div>
-              </div>
-
-              <div class="info-item logout-button-container">
-                <button class="btn-logout" @click="handleLogout">Sair da Conta</button>
-              </div>
+            <div class="profile-footer">
+              <button type="button" class="btn-signout" @click="handleLogout">
+                <LogOut :size="16" />
+                <span>Sair da conta</span>
+              </button>
             </div>
           </div>
         </transition>
+      </section>
+
+      <!-- Appearance Settings Section -->
+      <section class="settings-card">
+        <div class="card-header">
+          <div class="header-content">
+            <component :is="isDark ? Moon : Sun" :size="24" class="icon" />
+            <div>
+              <h2>Aparência</h2>
+              <span class="subtitle">Escolha entre o tema claro e o escuro</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="theme-switch"
+            role="switch"
+            :aria-checked="isDark"
+            aria-label="Alternar modo escuro"
+            @click="themeStore.toggleTheme()"
+          >
+            <span class="theme-switch-thumb" />
+          </button>
+        </div>
       </section>
 
       <!-- Additional Settings Sections (for future use) -->
@@ -128,9 +142,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { User, ChevronDown, Lock, Bell } from 'lucide-vue-next'
+import { User, ChevronDown, Lock, Bell, Sun, Moon, Camera, Loader2, LogOut } from 'lucide-vue-next'
 import UserService from '@/services/userService'
 import { useUserStore } from '@/stores/userStore'
+import { useThemeStore } from '@/stores/themeStore'
 
 interface UserInfo {
   id: string
@@ -148,7 +163,10 @@ const uploadSuccess = ref('')
 const fileInput = ref<HTMLInputElement>()
 
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const router = useRouter()
+
+const isDark = computed(() => themeStore.theme === 'dark')
 
 const userInfo = reactive<UserInfo>({
   id: '',
@@ -356,165 +374,212 @@ onMounted(() => {
   transform: rotate(180deg);
 }
 
+/* Theme Switch */
+.theme-switch {
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.theme-switch[aria-checked='true'] {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.theme-switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease;
+}
+
+.theme-switch[aria-checked='true'] .theme-switch-thumb {
+  transform: translateX(20px);
+}
+
 /* Card Content */
 .card-content {
   padding: 24px;
 }
 
-.section-divider {
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 24px;
-}
-
-/* Avatar Area */
-.avatar-area {
+/* Profile identity */
+.profile-identity {
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
 }
 
-.avatar-display {
+.avatar-wrap {
+  position: relative;
   flex-shrink: 0;
 }
 
+.avatar-display {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
 .avatar-image {
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border: 3px solid var(--color-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .avatar-placeholder {
-  width: 100px;
-  height: 100px;
-  border-radius: 12px;
-  background-color: var(--color-bg);
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: var(--color-surface-alt);
   color: var(--color-placeholder);
-  border: 3px dashed var(--color-border);
 }
 
-.avatar-actions {
-  flex: 1;
-  min-width: 250px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  justify-content: flex-start;
-}
-
-.btn-primary {
-  padding: 12px 20px;
+.avatar-edit-btn {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--color-surface);
   background-color: var(--color-primary);
   color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  width: fit-content;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background-color: #1ed760;
-  box-shadow: 0 4px 12px rgba(30, 215, 96, 0.3);
-  transform: translateY(-2px);
+.avatar-edit-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  transform: scale(1.06);
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
+.avatar-edit-btn:disabled {
   cursor: not-allowed;
+  opacity: 0.85;
 }
 
-.message-box {
-  min-height: 24px;
+.icon-spin {
+  animation: icon-spin 0.8s linear infinite;
 }
 
-.error-msg,
-.success-msg {
-  margin: 0;
+@keyframes icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.user-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.user-email {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.skeleton-line {
+  display: block;
+  height: 14px;
+  border-radius: 6px;
+  background-color: var(--color-border);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-line + .skeleton-line {
+  margin-top: 8px;
+}
+
+.skeleton-line--name {
+  width: 140px;
+  height: 16px;
+}
+
+.skeleton-line--email {
+  width: 190px;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.feedback-msg {
+  margin: 14px 0 0;
   font-size: 0.85rem;
 }
 
 .error-msg {
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .success-msg {
-  color: #1db954;
+  color: var(--color-success);
 }
 
-/* Info Grid */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-.info-item {
+/* Profile footer / sign out */
+.profile-footer {
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.btn-signout {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-}
-
-.info-label {
-  font-size: 0.75rem;
-  color: var(--color-placeholder);
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-input);
+  background-color: transparent;
+  color: var(--color-danger);
+  font-size: 0.9rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-value {
-  padding: 12px 16px;
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  color: var(--color-text);
-  font-size: 0.95rem;
-  word-break: break-all;
-}
-
-.info-value.mono {
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-}
-
-.status-badge {
-  color: #1db954;
-  font-weight: 600;
-  border-color: #1db954;
-  background-color: rgba(29, 185, 84, 0.1);
-}
-
-.logout-button-container {
-  grid-column: 1 / -1;
-}
-
-.btn-logout {
-  padding: 12px 20px;
-  background-color: #ff4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.btn-logout:hover {
-  background-color: #dd3333;
-  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
-  transform: translateY(-2px);
+.btn-signout:hover {
+  background-color: var(--color-danger-soft);
 }
 
 /* Animations */
@@ -523,11 +588,7 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.slide-enter-from {
-  opacity: 0;
-  max-height: 0;
-}
-
+.slide-enter-from,
 .slide-leave-to {
   opacity: 0;
   max-height: 0;
@@ -543,22 +604,13 @@ onMounted(() => {
     font-size: 1.5rem;
   }
 
-  .avatar-area {
+  .profile-identity {
     flex-direction: column;
-    align-items: center;
     text-align: center;
   }
 
-  .avatar-actions {
-    width: 100%;
-  }
-
-  .btn-primary {
-    width: 100%;
-  }
-
-  .info-grid {
-    grid-template-columns: 1fr;
+  .profile-footer {
+    justify-content: center;
   }
 
   .card-header {

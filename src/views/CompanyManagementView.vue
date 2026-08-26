@@ -90,7 +90,7 @@ import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import CompanyService, { type CompanyRole } from '@/services/companyService';
-import BaseInput from '@/components/inputs/BaseInput.vue';
+import BaseInput from '@/components/ui/BaseInput.vue';
 
 const router = useRouter();
 const companyStore = useCompanyStore();

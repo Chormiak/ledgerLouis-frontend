@@ -64,7 +64,7 @@ const formattedDate = (dateString: string) => {
   padding: 18px;
   border-radius: 28px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(var(--color-surface-rgb), 0.96);
   box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
 }
 

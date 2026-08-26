@@ -29,6 +29,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useThemeStore } from '@/stores/themeStore';
+
+const themeStore = useThemeStore();
 
 const breakdown = [
   { label: 'Despesas operacionais', percentage: 40, color: '#22c55e' },
@@ -40,55 +43,61 @@ const breakdown = [
 
 const chartSeries = breakdown.map((item) => item.percentage);
 
-const chartOptions = computed(() => ({
-  chart: {
-    type: 'donut',
-    toolbar: { show: false },
-    fontFamily: 'var(--font-body)',
-  },
-  labels: breakdown.map((item) => item.label),
-  colors: breakdown.map((item) => item.color),
-  legend: { show: false },
-  dataLabels: { enabled: false },
-  stroke: {
-    width: 0,
-  },
-  plotOptions: {
-    pie: {
-      donut: {
-        size: '66%',
-        labels: {
-          show: true,
-          name: {
+const chartOptions = computed(() => {
+  const isDark = themeStore.theme === 'dark';
+  const labelColor = isDark ? '#a3aab8' : '#64748b';
+  const valueColor = isDark ? '#f1f3f6' : '#111827';
+
+  return {
+    chart: {
+      type: 'donut',
+      toolbar: { show: false },
+      fontFamily: 'var(--font-body)',
+    },
+    labels: breakdown.map((item) => item.label),
+    colors: breakdown.map((item) => item.color),
+    legend: { show: false },
+    dataLabels: { enabled: false },
+    stroke: {
+      width: 0,
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '66%',
+          labels: {
             show: true,
-            offsetY: 16,
-            fontSize: '12px',
-            color: '#64748b',
-          },
-          value: {
-            show: true,
-            fontSize: '28px',
-            fontWeight: 800,
-            color: '#111827',
-            formatter: () => 'R$ 30.698,65',
-          },
-          total: {
-            show: true,
-            label: 'Total mensal',
-            fontSize: '13px',
-            color: '#64748b',
-            formatter: () => '100%',
+            name: {
+              show: true,
+              offsetY: 16,
+              fontSize: '12px',
+              color: labelColor,
+            },
+            value: {
+              show: true,
+              fontSize: '28px',
+              fontWeight: 800,
+              color: valueColor,
+              formatter: () => 'R$ 30.698,65',
+            },
+            total: {
+              show: true,
+              label: 'Total mensal',
+              fontSize: '13px',
+              color: labelColor,
+              formatter: () => '100%',
+            },
           },
         },
       },
     },
-  },
-  tooltip: {
-    y: {
-      formatter: (value: number) => `${value}%`,
+    tooltip: {
+      y: {
+        formatter: (value: number) => `${value}%`,
+      },
     },
-  },
-}));
+  };
+});
 </script>
 
 <style scoped>
@@ -96,7 +105,7 @@ const chartOptions = computed(() => ({
   padding: 18px;
   border-radius: 28px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(var(--color-surface-rgb), 0.96);
   box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
 }
 

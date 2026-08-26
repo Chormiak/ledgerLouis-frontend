@@ -85,8 +85,8 @@
 import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCompanyStore } from '@/stores/CompanyStore';
-import BaseInput from '@/components/inputs/BaseInput.vue';
-import PrimaryButton from '@/components/inputs/PrimaryButton.vue';
+import BaseInput from '@/components/ui/BaseInput.vue';
+import PrimaryButton from '@/components/ui/PrimaryButton.vue';
 import CompanyService from '@/services/companyService';
 
 const router = useRouter();

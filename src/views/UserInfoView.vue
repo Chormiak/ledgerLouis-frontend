@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import UserInfo from "../components/UserInfo.vue"
+import UserInfo from "../components/user/UserInfo.vue"
 </script>
 <template>
     <div class="main-container">
