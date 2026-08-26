@@ -203,12 +203,14 @@ const countDescription = computed(() =>
 <style scoped>
 .dashboard-page {
   position: relative;
+  overflow-x: hidden;
   min-height: calc(100vh - 165px);
-  padding: 20px 16px 32px;
+  margin-top: -10px;
+  padding: 30px 16px 32px;
   background:
     radial-gradient(circle at top left, rgba(39, 185, 105, 0.14), transparent 28%),
     radial-gradient(circle at top right, rgba(29, 205, 108, 0.12), transparent 32%),
-    linear-gradient(180deg, #f4f7fb 0%, #eef3f8 100%);
+    var(--color-bg);
 }
 
 .dashboard-shell {

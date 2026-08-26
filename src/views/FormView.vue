@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AuthLogin from '@/components/Forms/AuthLogin.vue';
-import AuthRegister from '@/components/Forms/AuthRegister.vue';
-import NavAuth from '@/components/Forms/NavAuth.vue';
+import AuthLogin from '@/components/forms/AuthLogin.vue';
+import AuthRegister from '@/components/forms/AuthRegister.vue';
+import NavAuth from '@/components/forms/NavAuth.vue';
 
 const route = useRoute();
 const router = useRouter();

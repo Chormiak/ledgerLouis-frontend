@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ArrowLeft } from 'lucide-vue-next';
-import TagManager from '@/components/CompanyManagement/TagManager.vue';
+import TagManager from '@/components/company/TagManager.vue';
 import { useCompanyStore } from '@/stores/CompanyStore';
 
 const router = useRouter();

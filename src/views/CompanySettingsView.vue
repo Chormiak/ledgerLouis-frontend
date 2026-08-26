@@ -1,5 +1,6 @@
 <template>
   <main class="company-admin-page">
+    <div class="page-inner">
     <!-- Header da Página -->
     <div class="admin-header">
       <div class="header-content">
@@ -106,6 +107,7 @@
       <CategoryManager />
       <RecurringExpenseManager />
     </div>
+    </div>
   </main>
 </template>
 
@@ -114,10 +116,10 @@ import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import CompanyService, { type CompanyRole } from '@/services/companyService';
-import CategoryManager from '@/components/CompanyManagement/CategoryManager.vue';
-import RecurringExpenseManager from '@/components/CompanyManagement/RecurringExpenseManager.vue';
-import TagManager from '@/components/CompanyManagement/TagManager.vue';
-import BaseInput from '@/components/inputs/BaseInput.vue';
+import CategoryManager from '@/components/company/CategoryManager.vue';
+import RecurringExpenseManager from '@/components/company/RecurringExpenseManager.vue';
+import TagManager from '@/components/company/TagManager.vue';
+import BaseInput from '@/components/ui/BaseInput.vue';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
@@ -238,6 +240,11 @@ onMounted(async () => {
   min-height: calc(100vh - 65px);
   padding: 32px 20px;
   background-color: var(--color-surface-soft);
+}
+
+.page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .admin-header {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import BaseInput from '../inputs/BaseInput.vue';
-import PrimaryButton from '../inputs/PrimaryButton.vue';
+import BaseInput from '../ui/BaseInput.vue';
+import PrimaryButton from '../ui/PrimaryButton.vue';
 import UserService from '../../services/userService';
 import ResponsePopUp from './ResponsePopUp.vue';
 import { useUserStore } from '@/stores/userStore';

@@ -169,6 +169,12 @@ const handleNavigate = (path: string) => {
   box-sizing: border-box;
 }
 
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
 .nav-item {
   display: flex;
   flex-direction: column;

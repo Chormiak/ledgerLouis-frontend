@@ -141,12 +141,12 @@ const handleCancel = () => {
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 175px);
-  background-color: white;
+  background-color: var(--color-surface-soft);
   padding: 20px;
 }
 
 .card {
-  background: white;
+  background: var(--color-surface);
   border-radius: 32px;
   padding: 32px;
   width: 100%;
@@ -158,7 +158,7 @@ const handleCancel = () => {
 .title {
   font-size: 28px;
   font-weight: bold;
-  color: black;
+  color: var(--color-text);
   margin: 0 0 24px 0;
 }
 
@@ -173,15 +173,15 @@ const handleCancel = () => {
 }
 
 .response-popup.success .popup-content {
-  border-top: 4px solid #10b981;
+  border-top: 4px solid var(--color-success);
 }
 
 .response-popup.error .popup-content {
-  border-top: 4px solid #ef4444;
+  border-top: 4px solid var(--color-danger);
 }
 
 .popup-content {
-  background: white;
+  background: var(--color-surface);
   border-radius: 16px;
   padding: 24px;
   text-align: center;
@@ -201,22 +201,23 @@ const handleCancel = () => {
 }
 
 .icon.success {
-  background-color: #10b981;
+  background-color: var(--color-success);
 }
 
 .icon.error {
-  background-color: #ef4444;
+  background-color: var(--color-danger);
 }
 
 .popup-title {
   font-size: 18px;
   font-weight: bold;
+  color: var(--color-text);
   margin: 0 0 8px 0;
 }
 
 .popup-message {
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -235,24 +236,24 @@ const handleCancel = () => {
 .form-label {
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   font-size: 16px;
   font-family: inherit;
-  background-color: white;
-  color: #1f2937;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--color-danger);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
@@ -274,19 +275,19 @@ const handleCancel = () => {
   appearance: none;
   padding: 12px 16px;
   padding-right: 40px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   font-size: 16px;
   font-family: inherit;
-  background-color: white;
-  color: #374151;
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-select:focus {
   outline: none;
-  border-color: #ef4444;
+  border-color: var(--color-danger);
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
@@ -301,7 +302,7 @@ const handleCancel = () => {
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: black;
+  color: var(--color-text);
   pointer-events: none;
 }
 
@@ -320,7 +321,7 @@ const handleCancel = () => {
   user-select: none;
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: var(--color-text);
   padding-left: 4px;
 }
 
@@ -328,7 +329,7 @@ const handleCancel = () => {
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #ef4444;
+  accent-color: var(--color-danger);
 }
 
 .recurring-input {
@@ -340,7 +341,7 @@ const handleCancel = () => {
 
 .recurring-text {
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 }
 
 .form-actions {
@@ -362,13 +363,13 @@ const handleCancel = () => {
 }
 
 .btn-secondary {
-  background-color: #f1f1f1;
-  color: black;
-  border: 1px solid #dcdcdc;
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-  background-color: #e5e5e5;
+  background-color: var(--color-border);
 }
 
 .btn-secondary:active {
@@ -376,7 +377,7 @@ const handleCancel = () => {
 }
 
 .btn-danger {
-  background-color: #ef4444;
+  background-color: var(--color-danger);
   color: white;
   box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
 }
