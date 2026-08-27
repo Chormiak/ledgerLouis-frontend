@@ -1,25 +1,10 @@
 <template>
   <header class="top-navbar">
-    <div class="logo-section">
+    <router-link to="/" class="logo-section">
       <span class="logo-text">LEDGER</span>
-    </div>
-
-    <button class="profile-button" @click="goToCompany">
-      <Briefcase :size="28" stroke-width="2.5" />
-    </button>
+    </router-link>
   </header>
 </template>
-
-<script setup lang="ts">
-import { Briefcase } from 'lucide-vue-next';
-import { useRouter } from 'vue-router';
-
-const router = useRouter();
-
-const goToCompany = () => {
-  router.push({ name: 'company' });
-};
-</script>
 
 <style scoped>
 .top-navbar {
@@ -27,12 +12,11 @@ const goToCompany = () => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 65px;
+  height: 52px;
   background-color: var(--color-surface);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 18px;
   box-sizing: border-box;
   z-index: 1001;
 
@@ -40,32 +24,17 @@ const goToCompany = () => {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
+.logo-section {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .logo-text {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 18px;
+  font-size: 15px;
   letter-spacing: 1px;
   color: var(--color-text);
-}
-.profile-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-
-  color: var(--color-success-alt); /* Fallback */
-}
-
-
-.profile-button :deep(svg) {
-  stroke: url(#green-gradient);
-}
-
-.profile-button:active {
-  transform: scale(0.9);
 }
 </style>

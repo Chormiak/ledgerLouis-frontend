@@ -282,7 +282,7 @@ h1 {
 .danger-button {
   flex-shrink: 0;
   padding: 12px 20px;
-  border-radius: var(--radius-input);
+  border-radius: 999px;
   border: 1.5px solid var(--color-danger);
   background: transparent;
   color: var(--color-danger);
@@ -359,7 +359,7 @@ h1 {
 
 .ghost-button {
   padding: 10px 18px;
-  border-radius: var(--radius-input);
+  border-radius: 999px;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 13.5px;

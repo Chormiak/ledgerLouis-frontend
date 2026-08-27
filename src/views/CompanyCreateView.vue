@@ -288,16 +288,11 @@ h1 {
 
 .form-actions {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
   margin-top: 36px;
-}
-
-.form-actions .ghost-button,
-.form-actions :deep(.primary-btn) {
-  flex: 1;
-  min-width: 150px;
 }
 
 .btn-label {
