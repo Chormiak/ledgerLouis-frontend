@@ -22,9 +22,9 @@ defineProps<{
 .feature-item {
   display: flex;
   gap: 20px;
-  margin-bottom: 40px;
   padding: 20px;
-  background: white;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
@@ -63,5 +63,11 @@ defineProps<{
   color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0;
+}
+
+@media (min-width: 1100px) {
+  .feature-item {
+    padding: 24px;
+  }
 }
 </style>

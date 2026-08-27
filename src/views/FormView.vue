@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import AuthLogin from '@/components/Forms/AuthLogin.vue';
-import AuthRegister from '@/components/Forms/AuthRegister.vue';
-import NavAuth from '@/components/Forms/NavAuth.vue';
+import AuthLogin from '@/components/forms/AuthLogin.vue';
+import AuthRegister from '@/components/forms/AuthRegister.vue';
+import NavAuth from '@/components/forms/NavAuth.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -20,41 +20,104 @@ watch(
     activeTab.value = tab === 'login' ? 'login' : 'register';
   }
 );
+
+const kicker = computed(() => (activeTab.value === 'login' ? 'Bem-vindo de volta' : 'Comece agora'));
+const description = computed(() =>
+  activeTab.value === 'login'
+    ? 'Entre com seu e-mail e senha para continuar.'
+    : 'Leva menos de um minuto para organizar as finanças do seu negócio.',
+);
 </script>
 
 <template>
-  <div class="main-container">
-      <div class="auth-wrapper">
-            <NavAuth :active-tab="activeTab" @change-tab="toggleTab" />
-            <AuthRegister v-if="activeTab === 'register'" />
-            <AuthLogin v-else />
+  <main class="auth-page">
+    <section class="auth-container">
+      <header class="header-block">
+        <p class="kicker">{{ kicker }}</p>
+        <h1 v-if="activeTab === 'login'">Acesse sua <span class="accent-text">conta</span></h1>
+        <h1 v-else>Crie sua <span class="accent-text">conta</span></h1>
+        <p class="description">{{ description }}</p>
+      </header>
+
+      <div class="auth-card">
+        <NavAuth :active-tab="activeTab" @change-tab="toggleTab" />
+
+        <div class="auth-body">
+          <AuthRegister v-if="activeTab === 'register'" />
+          <AuthLogin v-else />
+        </div>
       </div>
-  </div>
+    </section>
+  </main>
 </template>
 
 <style scoped>
-.main-container {
-    width: 100%;
-    min-height: calc(100vh - 175px);
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center;
-    background-color: var(--color-bg);
+.auth-page {
+  min-height: calc(100vh - 65px);
+  display: flex;
+  justify-content: center;
+  padding: 64px 20px;
+  background: var(--color-bg);
 }
 
-.auth-wrapper {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    border-radius: 20px 20px 0 0;
-    overflow: hidden; 
-    background-color: transparent; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
+.header-block {
+  text-align: left;
+}
 
+.kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 14px;
+}
 
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin-bottom: 14px;
+  text-wrap: balance;
+}
+
+.accent-text {
+  background: var(--color-success-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.description {
+  color: var(--color-text-secondary);
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+
+.auth-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  overflow: hidden;
+}
+
+.auth-body {
+  padding: 28px;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 40px 16px;
+  }
+}
 </style>

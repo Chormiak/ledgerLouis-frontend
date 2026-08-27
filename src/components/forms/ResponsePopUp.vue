@@ -16,6 +16,9 @@ const handleClose = () => {
   <transition name="fade">
     <div v-if="show" class="overlay" @click="handleClose">
       <div class="popup" @click.stop>
+        <button type="button" class="close-button" aria-label="Fechar mensagem" @click="handleClose">
+          ×
+        </button>
         <div class="icon" :class="status">
           <span v-if="status === 'success'">✔</span>
           <span v-else>✖</span>
@@ -26,6 +29,7 @@ const handleClose = () => {
         </h2>
 
         <p class="message">{{ message }}</p>
+        <button type="button" class="close-action" @click="handleClose">Fechar</button>
       </div>
     </div>
   </transition>
@@ -43,6 +47,7 @@ const handleClose = () => {
 }
 
 .popup {
+  position: relative;
   background: var(--color-surface);
   border-radius: 16px;
   padding: 2rem;
@@ -51,6 +56,28 @@ const handleClose = () => {
   text-align: center;
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   animation: pop 0.3s ease;
+}
+
+.close-button,
+.close-action {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.close-button {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.close-action {
+  margin-top: 18px;
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .icon {

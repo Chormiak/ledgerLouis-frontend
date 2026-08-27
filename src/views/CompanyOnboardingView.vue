@@ -1,20 +1,44 @@
 <template>
   <main class="onboarding-page">
-    <section class="onboarding-card">
-      <div class="onboarding-header">
-        <h1>Bem-vindo à sua empresa</h1>
-        <p>Antes de seguir, escolha se quer entrar em uma empresa existente ou criar a sua.</p>
+    <section class="onboarding-container">
+      <header class="header-block">
+        <p class="kicker">Comece por aqui</p>
+        <h1>Vamos configurar sua <span class="accent-text">empresa</span></h1>
+        <p class="description">
+          Escolha se quer entrar em uma empresa existente ou criar a sua do zero.
+        </p>
+      </header>
+
+      <div v-if="loading" class="loading-state">Carregando suas empresas...</div>
+
+      <div v-else-if="companyStore.companies.length > 0" class="option-list">
+        <button
+          v-for="userCompany in companyStore.companies"
+          :key="userCompany.companyId"
+          class="option-row"
+          @click="enterCompany(userCompany)"
+        >
+          <span class="option-icon">
+            <Building2 :size="20" />
+          </span>
+          <span class="option-copy">
+            <strong>{{ userCompany.companyName }}</strong>
+            <span>Participante como {{ userCompany.role }}</span>
+          </span>
+          <ArrowRight class="option-arrow" :size="18" />
+        </button>
       </div>
 
       <div class="option-list">
-        <button class="option-button" @click="goToJoin">
-          <strong>Entrar em uma empresa</strong>
-          <span>Usar convite ou código para acessar a conta de uma empresa já existente.</span>
-        </button>
-
-        <button class="option-button" @click="goToCreate">
-          <strong>Criar nova empresa</strong>
-          <span>Começar do zero e configurar sua empresa dentro do Ledger Louis.</span>
+        <button class="option-row" @click="goToCreate">
+          <span class="option-icon">
+            <Building2 :size="20" />
+          </span>
+          <span class="option-copy">
+            <strong>Criar nova empresa</strong>
+            <span>Começar do zero e configurar sua empresa dentro do Ledger Louis.</span>
+          </span>
+          <ArrowRight class="option-arrow" :size="18" />
         </button>
       </div>
     </section>
@@ -22,24 +46,30 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { Building2, ArrowRight } from 'lucide-vue-next';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import type { UserCompanyDto } from '@/services/companyService';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
-
-const goToJoin = () => {
-  router.push({ name: 'companyJoin' });
-};
+const loading = ref(true);
 
 const goToCreate = () => {
   router.push({ name: 'companyCreate' });
 };
 
-onMounted(() => {
-  if (companyStore.company.hasCompany) {
-    router.replace({ name: 'companySettings' });
+const enterCompany = (userCompany: UserCompanyDto) => {
+  companyStore.selectCompany(userCompany);
+  router.push({ name: 'companySettings' });
+};
+
+onMounted(async () => {
+  try {
+    await companyStore.syncFromBackend();
+  } finally {
+    loading.value = false;
   }
 });
 </script>
@@ -48,145 +78,131 @@ onMounted(() => {
 .onboarding-page {
   min-height: calc(100vh - 65px);
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 32px 18px;
-  background-color: var(--color-surface-soft);
+  padding: 64px 20px;
+  background: var(--color-bg);
 }
 
-.onboarding-card {
+.onboarding-container {
   width: 100%;
-  max-width: 640px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 28px;
-  padding: 32px;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  max-width: 560px;
 }
 
-.onboarding-header h1 {
-  font-size: 32px;
-  margin: 0 0 12px;
-  color: var(--color-success-dark);
+.kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  margin-bottom: 14px;
 }
 
-.onboarding-header p {
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 4vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text);
+  margin-bottom: 14px;
+  text-wrap: balance;
+}
+
+.accent-text {
+  background: var(--color-success-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.description {
   color: var(--color-text-secondary);
-  line-height: 1.75;
-  margin-bottom: 28px;
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 440px;
 }
 
 .option-list {
-  display: grid;
-  gap: 18px;
-}
-
-.option-button {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 24px 26px;
   gap: 12px;
-  border-radius: 22px;
-  border: 2px solid var(--color-border);
-  background: var(--color-surface-alt);
-  color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
+  margin-top: 36px;
 }
 
-.option-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.option-button:hover {
-  transform: translateY(-4px) scale(1.02);
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
   background: var(--color-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.option-row:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: var(--color-surface-alt);
 }
 
-.option-button:hover::before {
-  left: 100%;
-}
-
-.option-button:active {
-  transform: translateY(-2px) scale(1.01);
-}
-
-.option-button strong {
-  font-size: 20px;
-  font-weight: 700;
+.option-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--color-primary-glow);
   color: var(--color-primary);
-  transition: color 0.3s;
 }
 
-.option-button:hover strong {
-  color: var(--color-primary-hover);
+.option-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
-.option-button span {
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-  transition: color 0.3s;
-}
-
-.option-button:hover span {
+.option-copy strong {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
   color: var(--color-text);
+}
+
+.option-copy span {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.option-arrow {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.option-row:hover .option-arrow {
+  transform: translateX(3px);
+  color: var(--color-primary);
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .onboarding-page {
-    padding: 20px 16px;
+    padding: 40px 16px;
   }
 
-  .onboarding-card {
-    padding: 24px 20px;
+  .option-row {
+    padding: 16px 18px;
+    gap: 14px;
   }
 
-  .onboarding-header h1 {
-    font-size: 28px;
-  }
-
-  .option-list {
-    gap: 16px;
-  }
-
-  .option-button {
-    padding: 20px 22px;
-  }
-
-  .option-button strong {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .onboarding-header h1 {
-    font-size: 24px;
-  }
-
-  .option-button {
-    padding: 18px 20px;
-  }
-
-  .option-button strong {
-    font-size: 16px;
-  }
-
-  .option-button span {
-    font-size: 14px;
+  .option-copy span {
+    font-size: 13px;
   }
 }
 </style>

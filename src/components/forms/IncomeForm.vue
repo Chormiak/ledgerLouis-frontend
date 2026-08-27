@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
 import { useCategoryStore } from '@/stores/categoryStore';
-import BaseInput from '../inputs/BaseInput.vue';
-import PrimaryButton from '../inputs/PrimaryButton.vue';
+import BaseInput from '../ui/BaseInput.vue';
+import PrimaryButton from '../ui/PrimaryButton.vue';
 import ResponsePopUp from './ResponsePopUp.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useRouter } from 'vue-router';
@@ -10,10 +10,10 @@ const router = useRouter();
 const transactionStore = useTransactionStore() as any;
 const categoryStore = useCategoryStore();
 
-const expenseData = reactive({
+const incomeData = reactive({
   amount: '',
   description: '',
-  category: categoryStore.getCategories('expense')[0]?.id ?? '',
+  category: categoryStore.getCategories('income')[0]?.id ?? '',
   date: new Date().toISOString().split('T')[0],
   notes: '',
 });
@@ -24,16 +24,16 @@ const response = reactive({
   show: false,
 });
 
-const handleAddExpense = async () => {
+const handleAddIncome = async () => {
   try {
-    if (!expenseData.amount || !expenseData.description || !expenseData.date || !expenseData.category) {
+    if (!incomeData.amount || !incomeData.description || !incomeData.date || !incomeData.category) {
       response.status = 'error';
       response.message = 'Preencha todos os campos obrigatórios';
       response.show = true;
       return;
     }
 
-    const amount = parseFloat(expenseData.amount);
+    const amount = parseFloat(incomeData.amount);
     if (isNaN(amount) || amount <= 0) {
       response.status = 'error';
       response.message = 'Digite um valor válido e maior que zero';
@@ -41,23 +41,23 @@ const handleAddExpense = async () => {
       return;
     }
 
-    transactionStore.addExpense({
-      amount: Number(expenseData.amount),
-      description: expenseData.description,
-      category: expenseData.category,
-      date: expenseData.date,
-      notes: expenseData.notes || '',
+    transactionStore.addIncome({
+      amount,
+      description: incomeData.description,
+      category: incomeData.category,
+      date: incomeData.date,
+      notes: incomeData.notes,
     });
 
     response.status = 'success';
-    response.message = 'Despesa registrada com sucesso!';
+    response.message = 'Entrada de renda registrada com sucesso!';
     response.show = true;
 
     // Reset form
-    Object.assign(expenseData, {
+    Object.assign(incomeData, {
       amount: '',
       description: '',
-      category: categoryStore.getCategories('expense')[0]?.id ?? '',
+      category: categoryStore.getCategories('income')[0]?.id ?? '',
       date: new Date().toISOString().split('T')[0],
       notes: '',
     });
@@ -67,14 +67,14 @@ const handleAddExpense = async () => {
     }, 2000);
   } catch (_error) {
     response.status = 'error';
-    response.message = 'Erro ao registrar despesa. Tente novamente.';
+    response.message = 'Erro ao registrar entrada. Tente novamente.';
     response.show = true;
   }
 };
 </script>
 
 <template>
-  <form @submit.prevent="handleAddExpense" class="expense-form">
+  <form @submit.prevent="handleAddIncome" class="income-form">
     <ResponsePopUp 
       :status="response.status" 
       :message="response.message"
@@ -85,7 +85,7 @@ const handleAddExpense = async () => {
       <label for="amount">Valor *</label>
       <BaseInput
         id="amount"
-        v-model="expenseData.amount"
+        v-model="incomeData.amount"
         type="number"
         placeholder="0.00"
         step="0.01"
@@ -98,17 +98,17 @@ const handleAddExpense = async () => {
       <label for="description">Descrição *</label>
       <BaseInput
         id="description"
-        v-model="expenseData.description"
+        v-model="incomeData.description"
         type="text"
-        placeholder="Ex: Refeição, Passagem..."
+        placeholder="Ex: Salário, Freelance..."
         required
       />
     </div>
 
     <div class="form-group">
       <label for="category">Categoria *</label>
-      <select id="category" v-model="expenseData.category" class="form-select">
-        <option v-for="cat in categoryStore.getCategories('expense')" :key="cat.id" :value="cat.id">
+      <select id="category" v-model="incomeData.category" class="form-select">
+        <option v-for="cat in categoryStore.getCategories('income')" :key="cat.id" :value="cat.id">
           {{ cat.name }}
         </option>
       </select>
@@ -118,7 +118,7 @@ const handleAddExpense = async () => {
       <label for="date">Data *</label>
       <BaseInput
         id="date"
-        v-model="expenseData.date"
+        v-model="incomeData.date"
         type="date"
         required
       />
@@ -128,21 +128,21 @@ const handleAddExpense = async () => {
       <label for="notes">Notas (opcional)</label>
       <textarea
         id="notes"
-        v-model="expenseData.notes"
+        v-model="incomeData.notes"
         class="form-textarea"
-        placeholder="Adicione observações sobre essa despesa..."
+        placeholder="Adicione observações sobre essa entrada..."
         rows="3"
       />
     </div>
 
     <PrimaryButton type="submit" class="submit-btn">
-      Registrar Despesa
+      Registrar Entrada
     </PrimaryButton>
   </form>
 </template>
 
 <style scoped>
-.expense-form {
+.income-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -177,8 +177,8 @@ const handleAddExpense = async () => {
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--color-danger);
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.1);
 }
 
 .form-textarea {

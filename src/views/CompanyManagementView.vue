@@ -17,10 +17,9 @@
       <div v-else-if="!companyStore.company.hasCompany">
         <div class="empty-state">
           <h2>Nenhuma empresa selecionada</h2>
-          <p>Você ainda não tem uma empresa ativa. Crie uma nova ou entre em uma empresa existente.</p>
+          <p>Você ainda não tem uma empresa ativa. Crie uma nova empresa para começar.</p>
           <div class="action-row">
             <button class="secondary-button" @click="goToCreate">Criar empresa</button>
-            <button class="primary-button" @click="goToJoin">Entrar em empresa</button>
           </div>
         </div>
       </div>
@@ -54,19 +53,19 @@
 
         <section class="invite-card">
           <h2>Convidar novo membro</h2>
-          <form @submit.prevent="handleAddMember" class="invite-form">
+          <form @submit.prevent="handleCreateInvitation" class="invite-form">
             <BaseInput
               id="memberEmail"
               label="Email do membro"
               type="email"
               placeholder="email@dominio.com"
-              v-model="newMember.email"
+              v-model="newInvite.email"
               :error="errors.email"
               required
             />
 
             <label class="select-label" for="memberRole">Função</label>
-            <select id="memberRole" v-model="newMember.role">
+            <select id="memberRole" v-model="newInvite.role">
               <option value="owner">Owner</option>
               <option value="admin">Admin</option>
               <option value="viewer">Viewer</option>
@@ -80,6 +79,25 @@
             <p v-if="inviteError" class="error-message">{{ inviteError }}</p>
           </form>
         </section>
+
+        <section class="invite-card">
+          <h2>Convites pendentes</h2>
+          <div v-if="invitationsLoading" class="loading-state">Carregando convites...</div>
+          <div v-else-if="invitations.length === 0" class="empty-members">
+            <p>Nenhum convite pendente.</p>
+          </div>
+          <ul v-else class="invitations-list">
+            <li v-for="invitation in invitations" :key="invitation.id" class="invitation-item">
+              <div>
+                <strong>{{ invitation.email }}</strong>
+                <span class="member-role">{{ invitation.role }}</span>
+                <p class="invitation-meta">Expira em: {{ formatDate(invitation.expiresAt) }}</p>
+              </div>
+              <button class="danger-button" @click="handleRevoke(invitation)">Revogar</button>
+            </li>
+          </ul>
+        </section>
+
       </div>
     </section>
   </main>
@@ -90,7 +108,7 @@ import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import CompanyService, { type CompanyRole } from '@/services/companyService';
-import BaseInput from '@/components/inputs/BaseInput.vue';
+import BaseInput from '@/components/ui/BaseInput.vue';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
@@ -100,12 +118,13 @@ const inviteLoading = ref(false);
 const companies = ref<Array<{ companyId: string; companyName: string; role: string }>>([]);
 const members = ref([] as Array<{ userId: string; name: string; email: string; role: CompanyRole; createdAt: string }>);
 
-const newMember = reactive<{ email: string; role: CompanyRole }>({ email: '', role: 'viewer' });
+const newInvite = reactive<{ email: string; role: CompanyRole }>({ email: '', role: 'viewer' });
 const errors = reactive({ email: false });
 const inviteError = ref('');
+const invitations = ref<Array<{ id: string; email: string; role: CompanyRole; expiresAt: string }>>([]);
+const invitationsLoading = ref(false);
 
 const goToCreate = () => router.push({ name: 'companyCreate' });
-const goToJoin = () => router.push({ name: 'companyJoin' });
 const goToCompanySettings = () => router.push({ name: 'companySettings' });
 
 const setCompanyFromUserCompany = (userCompany: { companyId: string; companyName: string; role: string }) => {
@@ -148,11 +167,25 @@ const loadUserCompanies = async () => {
   }
 };
 
-const handleAddMember = async () => {
+const loadInvitations = async () => {
+  if (!companyStore.company.id) return;
+  invitationsLoading.value = true;
+  try {
+    const response = await service.listInvitations(companyStore.company.id, { limit: 50 });
+    invitations.value = response.items;
+  } catch (error) {
+    console.error('Erro ao carregar convites:', error);
+    invitations.value = [];
+  } finally {
+    invitationsLoading.value = false;
+  }
+};
+
+const handleCreateInvitation = async () => {
   errors.email = false;
   inviteError.value = '';
 
-  if (!newMember.email.trim()) {
+  if (!newInvite.email.trim()) {
     errors.email = true;
     return;
   }
@@ -163,15 +196,13 @@ const handleAddMember = async () => {
 
   inviteLoading.value = true;
   try {
-    await service.addCompanyMember(companyStore.company.id, newMember.email.trim(), newMember.role);
-    companyStore.addMember(newMember.email.trim());
-    newMember.email = '';
-    newMember.role = 'viewer';
-    await loadMembers();
+    await service.createInvitation(companyStore.company.id, newInvite.email.trim(), newInvite.role);
+    newInvite.email = '';
+    newInvite.role = 'viewer';
     inviteError.value = '';
+    await loadInvitations();
   } catch (error) {
-    // show friendly messages based on backend error codes
-    console.error('Erro ao adicionar membro:', error);
+    console.error('Erro ao criar convite:', error);
     const resp =
       typeof error === 'object' && error !== null && 'response' in error
         ? (error as { response?: { data?: { error?: string } } }).response?.data
@@ -190,10 +221,27 @@ const handleAddMember = async () => {
   }
 };
 
+const handleRevoke = async (invitation: { id: string }) => {
+  if (!companyStore.company.id) return;
+  try {
+    await service.revokeInvitation(companyStore.company.id, invitation.id);
+    await loadInvitations();
+  } catch (error) {
+    console.error('Erro ao revogar convite:', error);
+  }
+};
+
+const formatDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString('pt-BR');
+};
+
 onMounted(async () => {
   await loadUserCompanies();
   if (companyStore.company.hasCompany) {
     await loadMembers();
+    await loadInvitations();
   }
 });
 </script>
@@ -375,6 +423,50 @@ select {
   border: 1px solid var(--color-success-dark);
   background: transparent;
   color: var(--color-success-dark);
+}
+
+.invitations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.invitation-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+}
+
+.invitation-meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.danger-button {
+  padding: 10px 18px;
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  border: 1.5px solid var(--color-danger);
+  background: transparent;
+  color: var(--color-danger);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  white-space: nowrap;
+}
+
+.danger-button:hover {
+  background: var(--color-danger);
+  color: var(--color-surface);
 }
 
 @media (max-width: 768px) {

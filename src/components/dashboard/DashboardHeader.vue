@@ -14,12 +14,7 @@
         <span>Mensal</span>
       </div>
 
-      <button class="action-button action-button--ghost" type="button">
-        <Download :size="18" />
-        Exportar
-      </button>
-
-      <button class="action-button action-button--primary" type="button">
+      <button class="action-button action-button--primary" type="button" @click="router.push({ name: 'addExpense' })">
         <Plus :size="18" />
         Novo lançamento
       </button>
@@ -28,7 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarDays, Download, Plus } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
+import { CalendarDays, Plus } from 'lucide-vue-next';
+
+const router = useRouter();
 </script>
 
 <style scoped>
@@ -36,11 +34,9 @@ import { CalendarDays, Download, Plus } from 'lucide-vue-next';
   display: grid;
   gap: 18px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  border-radius: 28px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.88));
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(18px);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
 }
 
 .eyebrow {
@@ -86,7 +82,7 @@ h1 {
 
 .period-chip {
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(var(--color-surface-rgb), 0.86);
   color: var(--color-text-secondary);
 }
 
@@ -100,16 +96,9 @@ h1 {
   transform: scale(0.98);
 }
 
-.action-button--ghost {
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
 .action-button--primary {
   color: white;
   background: var(--color-success-gradient);
-  box-shadow: 0 16px 24px rgba(29, 205, 108, 0.24);
 }
 
 @media (min-width: 900px) {

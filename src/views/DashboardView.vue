@@ -1,10 +1,9 @@
 <template>
   <main class="dashboard-page">
-    <div class="dashboard-backdrop dashboard-backdrop--left" aria-hidden="true"></div>
-    <div class="dashboard-backdrop dashboard-backdrop--right" aria-hidden="true"></div>
-
     <div class="dashboard-shell">
       <DashboardHeader />
+
+      <TagFilterChips />
 
       <section class="metrics-grid" aria-label="Resumo financeiro">
         <DashboardCard
@@ -29,7 +28,7 @@
         <DashboardCard
           title="Entradas do mês"
           :value="formattedIncome"
-          description="Total de entradas"
+          :description="entriesDescription"
           trend-value="+ 8,3%"
           trend-label="vs mês anterior"
           tone="positive"
@@ -48,7 +47,7 @@
         <DashboardCard
           title="Saídas do mês"
           :value="formattedExpense"
-          description="Total de saídas"
+          :description="exitsDescription"
           trend-value="+ 3,7%"
           trend-label="vs mês anterior"
           tone="negative"
@@ -67,7 +66,7 @@
         <DashboardCard
           title="Transações"
           :value="transactionCount.toString()"
-          description="Total de transações"
+          :description="countDescription"
           trend-value="+ 5,2%"
           trend-label="vs mês anterior"
           tone="neutral"
@@ -85,10 +84,15 @@
       </section>
 
       <section class="charts-grid" aria-label="Gráficos financeiros">
-        <RevenueChart />
+        <RevenueChart :transactions="filteredTransactions" />
+        <TagsDistributionCard :transactions="filteredTransactions" />
       </section>
 
-      <RecentTransactions />
+      <section class="insights-grid" aria-label="Estatísticas de gastos">
+        <ExpenseInsightsCard />
+      </section>
+
+      <RecentTransactions :transactions="filteredTransactions" />
     </div>
   </main>
 </template>
@@ -102,11 +106,16 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
 import DashboardSparkline from '@/components/dashboard/DashboardSparkline.vue';
 import RecentTransactions from '@/components/dashboard/RecentTransactions.vue';
 import RevenueChart from '@/components/dashboard/RevenueChart.vue';
+import TagFilterChips from '@/components/dashboard/TagFilterChips.vue';
+import TagsDistributionCard from '@/components/dashboard/TagsDistributionCard.vue';
+import ExpenseInsightsCard from '@/components/dashboard/ExpenseInsightsCard.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import { useTagStore } from '@/stores/tagStore';
 
 const transactionStore = useTransactionStore();
 const companyStore = useCompanyStore();
+const tagStore = useTagStore();
 
 onMounted(async () => {
   if (companyStore.company.hasCompany) {
@@ -116,6 +125,19 @@ onMounted(async () => {
 });
 
 const accountValue = computed(() => transactionStore.accountValue);
+
+const activeTagName = computed(
+  () => tagStore.tags.find((tag) => tag.id === tagStore.activeTagId)?.name,
+);
+
+const filteredTransactions = computed(() => {
+  const activeTagId = tagStore.activeTagId;
+  if (!activeTagId) return transactionStore.transactions;
+
+  return transactionStore.transactions.filter((transaction) =>
+    tagStore.transactionHasTag(transaction.id, activeTagId),
+  );
+});
 
 const formattedAccountValue = computed(() => {
   const value = accountValue.value;
@@ -133,13 +155,13 @@ const balanceTrend = computed(() => {
 });
 
 const income = computed(() => {
-  return transactionStore.transactions
+  return filteredTransactions.value
     .filter(t => t.entryType === 'credit')
     .reduce((sum, t) => sum + t.amount, 0);
 });
 
 const expense = computed(() => {
-  return transactionStore.transactions
+  return filteredTransactions.value
     .filter(t => t.entryType === 'debit')
     .reduce((sum, t) => sum + t.amount, 0);
 });
@@ -159,56 +181,39 @@ const formattedExpense = computed(() => {
 });
 
 const transactionCount = computed(() => {
-  return transactionStore.transactions.length;
+  return filteredTransactions.value.length;
 });
+
+const entriesDescription = computed(() =>
+  activeTagName.value ? `Total de entradas · Tag: ${activeTagName.value}` : 'Total de entradas',
+);
+
+const exitsDescription = computed(() =>
+  activeTagName.value ? `Total de saídas · Tag: ${activeTagName.value}` : 'Total de saídas',
+);
+
+const countDescription = computed(() =>
+  activeTagName.value ? `Total de transações · Tag: ${activeTagName.value}` : 'Total de transações',
+);
 </script>
 
 <style scoped>
 .dashboard-page {
-  position: relative;
   min-height: calc(100vh - 165px);
-  padding: 20px 16px 32px;
-  background:
-    radial-gradient(circle at top left, rgba(39, 185, 105, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(29, 205, 108, 0.12), transparent 32%),
-    linear-gradient(180deg, #f4f7fb 0%, #eef3f8 100%);
+  padding: 30px 16px 32px;
+  background: var(--color-bg);
 }
 
 .dashboard-shell {
-  position: relative;
-  z-index: 1;
   display: grid;
   gap: 18px;
   max-width: 1240px;
   margin: 0 auto;
 }
 
-.dashboard-backdrop {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(24px);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.dashboard-backdrop--left {
-  top: 84px;
-  left: -40px;
-  width: 180px;
-  height: 180px;
-  background: rgba(29, 205, 108, 0.16);
-}
-
-.dashboard-backdrop--right {
-  right: -50px;
-  top: 320px;
-  width: 220px;
-  height: 220px;
-  background: rgba(229, 33, 36, 0.12);
-}
-
 .metrics-grid,
-.charts-grid {
+.charts-grid,
+.insights-grid {
   display: grid;
   gap: 16px;
 }
