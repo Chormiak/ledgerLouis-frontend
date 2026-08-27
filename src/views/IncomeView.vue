@@ -60,11 +60,15 @@ const handleAddIncome = async (e: Event) => {
     setTimeout(() => {
       router.push({ name: 'management' });
     }, 2000);
-  } catch {
+  } catch (error: any) {
     response.status = 'error';
-    response.message = 'Erro ao registrar entrada. Tente novamente.';
+    response.message = error?.response?.data?.message || 'Erro ao registrar entrada. Tente novamente.';
     response.show = true;
   }
+};
+
+const closeResponse = () => {
+  response.show = false;
 };
 
 const handleCancel = () => {
@@ -77,14 +81,16 @@ const handleCancel = () => {
     <div class="card">
       <h2 class="title">Nova Entrada</h2>
       
-      <div v-if="response.show" class="response-popup" :class="response.status">
+      <div v-if="response.show" class="response-popup" :class="response.status" role="alert">
         <div class="popup-content">
+          <button type="button" class="popup-close" aria-label="Fechar mensagem" @click="closeResponse">×</button>
           <div class="icon" :class="response.status">
             <span v-if="response.status === 'success'">✔</span>
             <span v-else>✖</span>
           </div>
           <h3 class="popup-title">{{ response.status === 'success' ? 'Sucesso!' : 'Erro!' }}</h3>
           <p class="popup-message">{{ response.message }}</p>
+          <button type="button" class="popup-action" @click="closeResponse">Fechar</button>
         </div>
       </div>
 
@@ -173,13 +179,8 @@ const handleCancel = () => {
 }
 
 .response-popup {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
+  position: relative;
+  margin-bottom: 20px;
 }
 
 .response-popup.success .popup-content {
@@ -196,6 +197,30 @@ const handleCancel = () => {
   padding: 24px;
   text-align: center;
   max-width: 320px;
+  width: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.popup-close,
+.popup-action {
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  background: transparent;
+}
+
+.popup-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 24px;
+}
+
+.popup-action {
+  margin-top: 18px;
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .icon {

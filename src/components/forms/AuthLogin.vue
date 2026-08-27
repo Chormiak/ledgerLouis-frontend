@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import BaseInput from '../ui/BaseInput.vue';
 import PrimaryButton from '../ui/PrimaryButton.vue';
 import UserService from '../../services/userService';
@@ -9,6 +9,7 @@ import { useUserStore } from '@/stores/userStore';
 
 const userStore = useUserStore();
 const router = useRouter();
+const route = useRoute();
 const loginData = userStore.userLoginData;
 const userService = new UserService();
 
@@ -20,6 +21,8 @@ const response = reactive({
 
 const handleLogin = async () => {
   try {
+    loginData.email = loginData.email.trim().toLowerCase();
+
     if (!loginData.email || !loginData.password) {
       response.status = 'error';
       response.message = 'Preencha todos os campos';
@@ -59,14 +62,19 @@ const handleLogin = async () => {
     response.show = true;
   // Redirecionar para tela inicial após 1 segundo
     setTimeout(() => {
-      router.push('/');
+      const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/';
+      router.push(redirect);
     }, 1000);
 
 
   } catch (error: any) {
     response.status = 'error';
-    response.message =
-      error?.response?.data?.message || 'Erro ao fazer login';
+    const status = error?.response?.status;
+    response.message = status === 429
+      ? 'Muitas tentativas. Aguarde alguns segundos e tente novamente.'
+      : status === 401
+        ? 'E-mail ou senha inválidos.'
+        : error?.response?.data?.message || 'Não foi possível conectar ao servidor.';
     response.show = true;
   }
 

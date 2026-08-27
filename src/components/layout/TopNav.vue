@@ -4,21 +4,49 @@
       <span class="logo-text">LEDGER</span>
     </div>
 
-    <button class="profile-button" @click="goToCompany">
-      <Briefcase :size="28" stroke-width="2.5" />
-    </button>
+    <div class="nav-actions">
+      <button class="icon-button" @click="goToInvitations" title="Convites">
+        <Mail :size="22" stroke-width="2.5" />
+        <span v-if="pendingInvitations > 0" class="badge">{{ pendingInvitations }}</span>
+      </button>
+
+      <button class="profile-button" @click="goToCompany">
+        <Briefcase :size="28" stroke-width="2.5" />
+      </button>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { Briefcase } from 'lucide-vue-next';
+import { Briefcase, Mail } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import CompanyService from '@/services/companyService';
 
 const router = useRouter();
+const pendingInvitations = ref(0);
+const service = new CompanyService();
+
+const loadPendingInvitations = async () => {
+  try {
+    const response = await service.listUserInvitations();
+    pendingInvitations.value = response.items.length;
+  } catch {
+    pendingInvitations.value = 0;
+  }
+};
 
 const goToCompany = () => {
   router.push({ name: 'company' });
 };
+
+const goToInvitations = () => {
+  router.push({ name: 'invitations' });
+};
+
+onMounted(() => {
+  loadPendingInvitations();
+});
 </script>
 
 <style scoped>
@@ -47,6 +75,7 @@ const goToCompany = () => {
   letter-spacing: 1px;
   color: var(--color-text);
 }
+
 .profile-button {
   background: none;
   border: none;
@@ -68,4 +97,44 @@ const goToCompany = () => {
 .profile-button:active {
   transform: scale(0.9);
 }
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-button {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: transform 0.2s ease;
+}
+
+.icon-button:active {
+  transform: scale(0.92);
+}
+
+.badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--color-danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
 </style>
+
