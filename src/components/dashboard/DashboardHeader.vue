@@ -14,6 +14,18 @@
         <span>Mensal</span>
       </div>
 
+      <div class="export-menu" ref="exportMenuRef">
+        <button class="action-button action-button--neutral" type="button" @click="exportMenuOpen = !exportMenuOpen">
+          <Download :size="18" />
+          Exportar
+        </button>
+
+        <div v-if="exportMenuOpen" class="export-dropdown">
+          <button type="button" @click="pickFormat('csv')">Exportar CSV</button>
+          <button type="button" @click="pickFormat('pdf')">Exportar PDF</button>
+        </div>
+      </div>
+
       <button class="action-button action-button--primary" type="button" @click="router.push({ name: 'addExpense' })">
         <Plus :size="18" />
         Novo lançamento
@@ -23,10 +35,29 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { CalendarDays, Plus } from 'lucide-vue-next';
+import { CalendarDays, Download, Plus } from 'lucide-vue-next';
 
 const router = useRouter();
+const emit = defineEmits<{ export: [format: 'csv' | 'pdf'] }>();
+
+const exportMenuOpen = ref(false);
+const exportMenuRef = ref<HTMLElement | null>(null);
+
+const pickFormat = (format: 'csv' | 'pdf') => {
+  exportMenuOpen.value = false;
+  emit('export', format);
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (exportMenuOpen.value && !exportMenuRef.value?.contains(event.target as Node)) {
+    exportMenuOpen.value = false;
+  }
+};
+
+onMounted(() => document.addEventListener('click', handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside));
 </script>
 
 <style scoped>
@@ -99,6 +130,46 @@ h1 {
 .action-button--primary {
   color: white;
   background: var(--color-success-gradient);
+}
+
+.action-button--neutral {
+  border: 1px solid var(--color-border);
+  background: rgba(var(--color-surface-rgb), 0.86);
+  color: var(--color-text);
+}
+
+.export-menu {
+  position: relative;
+}
+
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 160px;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+}
+
+.export-dropdown button {
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.export-dropdown button:hover {
+  background: var(--color-surface-soft);
 }
 
 @media (min-width: 900px) {

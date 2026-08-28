@@ -17,6 +17,8 @@
   "dependencies": {
     "apexcharts": "^5.16.0",
     "axios": "^1.15.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-vue-next": "^1.0.0",
     "pinia": "^3.0.4",
     "pwa": "^1.9.7",
