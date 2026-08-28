@@ -4,6 +4,7 @@ import { useTransactionStore } from '@/stores/transactionStore';
 import { useTagStore } from '@/stores/tagStore';
 import { useRouter } from 'vue-router';
 import TagPicker from '@/components/forms/TagPicker.vue';
+import ResponsePopUp from '@/components/forms/ResponsePopUp.vue';
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
@@ -80,19 +81,13 @@ const handleCancel = () => {
   <div class="container">
     <div class="card">
       <h2 class="title">Nova Saída</h2>
-      
-      <div v-if="response.show" class="response-popup" :class="response.status" role="alert">
-        <div class="popup-content">
-          <button type="button" class="popup-close" aria-label="Fechar mensagem" @click="closeResponse">×</button>
-          <div class="icon" :class="response.status">
-            <span v-if="response.status === 'success'">✔</span>
-            <span v-else>✖</span>
-          </div>
-          <h3 class="popup-title">{{ response.status === 'success' ? 'Sucesso!' : 'Erro!' }}</h3>
-          <p class="popup-message">{{ response.message }}</p>
-          <button type="button" class="popup-action" @click="closeResponse">Fechar</button>
-        </div>
-      </div>
+
+      <ResponsePopUp
+        :status="response.status"
+        :message="response.message"
+        :show="response.show"
+        @close="closeResponse"
+      />
 
       <form @submit="handleAddExpense" class="form">
         
@@ -176,84 +171,6 @@ const handleCancel = () => {
   font-weight: bold;
   color: var(--color-text);
   margin: 0 0 24px 0;
-}
-
-.response-popup {
-  position: relative;
-  margin-bottom: 20px;
-}
-
-.response-popup.success .popup-content {
-  border-top: 4px solid var(--color-success);
-}
-
-.response-popup.error .popup-content {
-  border-top: 4px solid var(--color-danger);
-}
-
-.popup-content {
-  background: var(--color-surface);
-  border-radius: 16px;
-  padding: 24px;
-  text-align: center;
-  max-width: 320px;
-  width: 100%;
-  margin: 0 auto;
-  position: relative;
-}
-
-.popup-close,
-.popup-action {
-  border: 0;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  background: transparent;
-}
-
-.popup-close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  font-size: 24px;
-}
-
-.popup-action {
-  margin-top: 18px;
-  font-weight: 700;
-  text-decoration: underline;
-}
-
-.icon {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  color: white;
-}
-
-.icon.success {
-  background-color: var(--color-success);
-}
-
-.icon.error {
-  background-color: var(--color-danger);
-}
-
-.popup-title {
-  font-size: 18px;
-  font-weight: bold;
-  color: var(--color-text);
-  margin: 0 0 8px 0;
-}
-
-.popup-message {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin: 0;
 }
 
 .form {

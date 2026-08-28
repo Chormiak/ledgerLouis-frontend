@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref, watch, onUnmounted, computed } from 'vue';
-import { Plus, Trash2, Play, Pause, PlayCircle } from 'lucide-vue-next';
+import { Plus, Trash2, Play, Pause, PlayCircle, X } from 'lucide-vue-next';
 import { useRecurringTransactionStore } from '@/stores/recurringTransactionStore';
 import type { RecurringEntryType, RecurringFrequency } from '@/services/recurringTransactionService';
+import PrimaryButton from '@/components/ui/PrimaryButton.vue';
 
 const store = useRecurringTransactionStore();
 
@@ -164,16 +165,16 @@ export default {
 </script>
 
 <template>
-  <div class="recurring-manager">
-    <div class="manager-header">
+  <div class="panel">
+    <div class="panel-header">
       <div>
-        <h3>Lançamentos Recorrentes</h3>
-        <p class="manager-hint">Entradas e saídas que se repetem — a cobrança é lançada automaticamente quando a data chegar.</p>
+        <h2 class="panel-title">Lançamentos Recorrentes</h2>
+        <p class="panel-subtitle">Entradas e saídas que se repetem — a cobrança é lançada automaticamente quando a data chegar.</p>
       </div>
-      <button class="btn-add" @click="showForm = true">
-        <Plus :size="18" />
+      <PrimaryButton variant="neutral" compact @click="showForm = true">
+        <Plus :size="15" />
         Novo lançamento
-      </button>
+      </PrimaryButton>
     </div>
 
     <div v-if="message.show" class="message" :class="message.status">
@@ -215,29 +216,38 @@ export default {
         </div>
 
         <div class="item-actions">
-          <button
+          <PrimaryButton
             v-if="item.status !== 'finished'"
-            class="btn-icon-text"
+            variant="neutral"
+            compact
+            :loading="runningId === item.id"
             @click="handleRunNow(item.id)"
-            :disabled="runningId === item.id"
           >
-            <PlayCircle :size="15" />
-            {{ runningId === item.id ? 'Lançando...' : 'Lançar agora' }}
-          </button>
+            <PlayCircle :size="14" />
+            Lançar agora
+          </PrimaryButton>
 
-          <button
+          <PrimaryButton
             v-if="item.status !== 'finished'"
-            class="btn-icon-text"
+            variant="neutral"
+            compact
             @click="handleToggleStatus(item.id, item.status)"
           >
-            <Pause v-if="item.status === 'active'" :size="15" />
-            <Play v-else :size="15" />
+            <Pause v-if="item.status === 'active'" :size="14" />
+            <Play v-else :size="14" />
             {{ item.status === 'active' ? 'Pausar' : 'Retomar' }}
-          </button>
+          </PrimaryButton>
 
-          <button class="btn-delete" @click="handleDelete(item.id)" title="Remover">
-            <Trash2 :size="16" />
-          </button>
+          <PrimaryButton
+            icon-only
+            compact
+            variant="danger"
+            class="delete-action"
+            title="Remover"
+            @click="handleDelete(item.id)"
+          >
+            <Trash2 :size="14" />
+          </PrimaryButton>
         </div>
       </div>
     </div>
@@ -250,7 +260,9 @@ export default {
       <div class="modal-dialog">
         <div class="modal-header">
           <h4>Novo lançamento recorrente</h4>
-          <button class="btn-close" @click="handleCloseForm" aria-label="Fechar">×</button>
+          <PrimaryButton icon-only compact variant="neutral" aria-label="Fechar" @click="handleCloseForm">
+            <X :size="15" />
+          </PrimaryButton>
         </div>
 
         <div class="modal-body">
@@ -337,10 +349,8 @@ export default {
         </div>
 
         <div class="modal-footer">
-          <button class="btn-cancel" @click="handleCloseForm">Cancelar</button>
-          <button class="btn-success" @click="handleCreate" :disabled="isLoading">
-            {{ isLoading ? 'Salvando...' : 'Confirmar' }}
-          </button>
+          <PrimaryButton variant="neutral" @click="handleCloseForm">Cancelar</PrimaryButton>
+          <PrimaryButton :loading="isLoading" @click="handleCreate">Confirmar</PrimaryButton>
         </div>
       </div>
     </div>
@@ -348,49 +358,34 @@ export default {
 </template>
 
 <style scoped>
-.recurring-manager {
+.panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 24px;
+  padding: 28px;
 }
 
-.manager-header {
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border);
 }
 
-.manager-header h3 {
-  margin: 0 0 6px;
+.panel-title {
+  margin: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: var(--color-text);
 }
 
-.manager-hint {
+.panel-subtitle {
+  margin-top: 4px;
   color: var(--color-text-secondary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   max-width: 44ch;
-}
-
-.btn-add {
-  flex-shrink: 0;
-  background: var(--color-primary);
-  color: var(--color-surface);
-  border: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-input);
-  cursor: pointer;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
 }
 
 .message {
@@ -532,46 +527,8 @@ export default {
   flex-wrap: wrap;
 }
 
-.btn-icon-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 12px;
-  border-radius: var(--radius-input);
-  border: 1px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-icon-text:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.btn-icon-text:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-delete {
+.delete-action {
   margin-left: auto;
-  background: transparent;
-  color: var(--color-danger);
-  border: 1px solid var(--color-border);
-  padding: 7px;
-  border-radius: var(--radius-input);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-delete:hover {
-  border-color: var(--color-danger);
-  background: var(--color-danger-soft);
 }
 
 .empty-state {
@@ -712,15 +669,6 @@ export default {
   color: var(--color-text);
 }
 
-.btn-close {
-  background: transparent;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  padding: 4px;
-}
-
 .modal-footer {
   position: sticky;
   bottom: 0;
@@ -730,32 +678,6 @@ export default {
   background: var(--color-surface-soft);
   justify-content: flex-end;
   flex-shrink: 0;
-}
-
-.btn-success,
-.btn-cancel {
-  min-width: 120px;
-  padding: 12px;
-  border-radius: var(--radius-input);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-success {
-  background: var(--color-primary);
-  color: var(--color-surface);
-  border: none;
-}
-
-.btn-success:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-cancel {
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
 }
 
 @media (max-width: 768px) {

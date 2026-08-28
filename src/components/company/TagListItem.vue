@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import type { TagDto } from '@/services/tagService';
 import { Check, Pencil, Trash2, X } from 'lucide-vue-next';
 import { colorForTag } from '@/utils/tagColor';
+import PrimaryButton from '@/components/ui/PrimaryButton.vue';
 
 interface Props {
   tag: TagDto;
@@ -44,11 +45,11 @@ export default {
 </script>
 
 <template>
-  <div class="category-item">
-    <div class="category-content">
+  <div class="tag-item">
+    <div class="tag-content">
       <span class="tag-dot" :style="{ backgroundColor: colorForTag(tag.id) }" aria-hidden="true"></span>
 
-      <div class="category-info" v-if="!isEditing">
+      <div class="tag-info" v-if="!isEditing">
         <h5>{{ tag.name }}</h5>
       </div>
 
@@ -57,6 +58,7 @@ export default {
         v-model="draftName"
         type="text"
         class="tag-edit-input"
+        autofocus
         @keyup.enter="confirmEdit"
         @keyup.escape="cancelEdit"
       />
@@ -64,43 +66,50 @@ export default {
 
     <div class="item-actions">
       <template v-if="isEditing">
-        <button class="btn-icon" title="Salvar" @click="confirmEdit">
-          <Check :size="16" />
-        </button>
-        <button class="btn-icon" title="Cancelar" @click="cancelEdit">
-          <X :size="16" />
-        </button>
+        <PrimaryButton icon-only compact title="Salvar" @click="confirmEdit">
+          <Check :size="15" />
+        </PrimaryButton>
+        <PrimaryButton icon-only compact variant="neutral" title="Cancelar" @click="cancelEdit">
+          <X :size="15" />
+        </PrimaryButton>
       </template>
       <template v-else>
-        <button class="btn-icon" title="Renomear" @click="startEdit">
-          <Pencil :size="16" />
-        </button>
-        <button class="btn-delete" :title="`Remover ${tag.name}`" @click="$emit('delete', tag.id)">
-          <Trash2 :size="18" />
-        </button>
+        <PrimaryButton icon-only compact variant="neutral" title="Renomear" @click="startEdit">
+          <Pencil :size="14" />
+        </PrimaryButton>
+        <PrimaryButton
+          icon-only
+          compact
+          variant="danger"
+          :title="`Remover ${tag.name}`"
+          @click="$emit('delete', tag.id)"
+        >
+          <Trash2 :size="14" />
+        </PrimaryButton>
       </template>
     </div>
   </div>
 </template>
 
 <style scoped>
-.category-item {
+.tag-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px;
-  background: var(--color-bg);
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--color-surface-soft);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.category-item:hover {
+.tag-item:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.category-content {
+.tag-content {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -115,7 +124,7 @@ export default {
   flex-shrink: 0;
 }
 
-.category-info h5 {
+.tag-info h5 {
   margin: 0;
   font-size: 0.95rem;
   color: var(--color-text);
@@ -125,8 +134,8 @@ export default {
 .tag-edit-input {
   flex: 1;
   padding: 8px 10px;
-  border: 1px solid var(--color-primary);
-  border-radius: 6px;
+  border: 1.5px solid var(--color-primary);
+  border-radius: 8px;
   font-size: 0.95rem;
   font-family: inherit;
   background: var(--color-surface);
@@ -135,47 +144,13 @@ export default {
 
 .tag-edit-input:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
 .item-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
-}
-
-.btn-icon {
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: 6px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-icon:hover {
-  color: var(--color-primary);
-  transform: scale(1.1);
-}
-
-.btn-delete {
-  background: none;
-  border: none;
-  color: var(--color-error);
-  cursor: pointer;
-  padding: 6px;
-  transition: all 0.2s;
-  opacity: 0.6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-delete:hover {
-  opacity: 1;
-  transform: scale(1.1);
+  gap: 6px;
+  flex-shrink: 0;
 }
 </style>

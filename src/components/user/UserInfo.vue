@@ -18,40 +18,40 @@ const handleLogout = () => {
         <h2>Meu Perfil</h2>
         <span class="subtitle">Informações da sua conta</span>
       </div>
-  
+
       <div class="info-section">
-  
+
         <div class="info-group">
           <label>Nome</label>
           <div class="info-box"></div>
         </div>
-  
+
         <div class="info-group">
           <label>Email</label>
           <div class="info-box"></div>
         </div>
-  
+
         <div class="info-group">
           <label>ID do usuário</label>
           <div class="info-box"></div>
         </div>
-  
+
         <div class="info-group">
           <label>Status da conta</label>
           <div class="info-box status-active"></div>
         </div>
-  
+
       </div>
-  
+
       <div class="actions">
         <button class="btn-primary">Editar Perfil</button>
         <button class="btn-logout" @click="handleLogout">Sair</button>
       </div>
     </div>
   </template>
-  
+
   <style scoped>
-  
+
   .profile-card {
     background-color: var(--color-surface);
     width: 100%;
@@ -61,30 +61,30 @@ const handleLogout = () => {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     font-family: var(--font-body);
   }
-  
-  
+
+
   .header {
     margin-bottom: 1.5rem;
   }
-  
+
   .header h2 {
     margin: 0;
     font-size: 1.4rem;
     color: #1db954;
   }
-  
+
   .subtitle {
     font-size: 0.85rem;
     color: var(--color-placeholder);
   }
-  
+
 
   .info-section {
     display: flex;
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .info-group label {
     font-size: 0.8rem;
     margin-left: 12px;
@@ -92,7 +92,7 @@ const handleLogout = () => {
     font-weight: 600;
     margin-bottom: 6px;
   }
-  
+
   .info-box {
     background-color: var(--color-bg);
     padding: 14px 20px;
@@ -102,26 +102,26 @@ const handleLogout = () => {
     color: var(--color-text);
     transition: 0.3s ease;
   }
-  
+
   .info-box:hover {
     border-color: var(--color-primary);
     box-shadow: 0 4px 12px var(--color-primary-glow);
   }
-  
+
 
   .status-active {
     color: #1db954;
     font-weight: bold;
   }
-  
-  
+
+
   .actions {
     margin-top: 2rem;
     display: flex;
     gap: 1rem;
     justify-content: center;
   }
-  
+
   .btn-primary {
     background-color: var(--color-primary);
     color: white;
@@ -132,7 +132,7 @@ const handleLogout = () => {
     font-weight: 600;
     transition: 0.3s ease;
   }
-  
+
   .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 18px var(--color-primary-glow);

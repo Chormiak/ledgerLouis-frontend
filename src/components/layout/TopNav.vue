@@ -1,24 +1,20 @@
 <template>
   <header class="top-navbar">
-    <div class="logo-section">
+    <router-link to="/" class="logo-section">
       <span class="logo-text">LEDGER</span>
-    </div>
+    </router-link>
 
     <div class="nav-actions">
       <button class="icon-button" @click="goToInvitations" title="Convites">
-        <Mail :size="22" stroke-width="2.5" />
+        <Mail :size="20" stroke-width="2.5" />
         <span v-if="pendingInvitations > 0" class="badge">{{ pendingInvitations }}</span>
-      </button>
-
-      <button class="profile-button" @click="goToCompany">
-        <Briefcase :size="28" stroke-width="2.5" />
       </button>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { Briefcase, Mail } from 'lucide-vue-next';
+import { Mail } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import CompanyService from '@/services/companyService';
@@ -36,10 +32,6 @@ const loadPendingInvitations = async () => {
   }
 };
 
-const goToCompany = () => {
-  router.push({ name: 'company' });
-};
-
 const goToInvitations = () => {
   router.push({ name: 'invitations' });
 };
@@ -55,12 +47,12 @@ onMounted(() => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 65px;
+  height: 52px;
   background-color: var(--color-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
+  padding: 0 18px;
   box-sizing: border-box;
   z-index: 1001;
 
@@ -68,34 +60,18 @@ onMounted(() => {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
+.logo-section {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .logo-text {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 18px;
+  font-size: 15px;
   letter-spacing: 1px;
   color: var(--color-text);
-}
-
-.profile-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-
-  color: var(--color-success-alt); /* Fallback */
-}
-
-
-.profile-button :deep(svg) {
-  stroke: url(#green-gradient);
-}
-
-.profile-button:active {
-  transform: scale(0.9);
 }
 
 .nav-actions {
@@ -137,4 +113,3 @@ onMounted(() => {
   text-align: center;
 }
 </style>
-
