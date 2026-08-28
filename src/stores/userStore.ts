@@ -31,6 +31,7 @@ export const useUserStore = defineStore('user', () => {
   const setTokens = (tokensData: { accessToken: string; refreshToken: string }) => {
     // Access token fica em memória 
     accessToken.value = tokensData.accessToken
+    localStorage.setItem('token', tokensData.accessToken)
     
     console.log('Tokens salvos na store:', {
       accessToken: accessToken.value,
@@ -48,6 +49,7 @@ export const useUserStore = defineStore('user', () => {
   // Limpar tokens ao deslogar
   const clearTokens = () => {
     accessToken.value = ''
+    localStorage.removeItem('token')
     localStorage.removeItem('refresh_token')
   }
 

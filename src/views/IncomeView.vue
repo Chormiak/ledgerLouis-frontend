@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { useTransactionStore } from '@/stores/transactionStore';
+import { useTagStore } from '@/stores/tagStore';
 import { useRouter } from 'vue-router';
+import TagPicker from '@/components/forms/TagPicker.vue';
+import ResponsePopUp from '@/components/forms/ResponsePopUp.vue';
 
 const router = useRouter();
 const transactionStore = useTransactionStore();
+const tagStore = useTagStore();
 
 const incomeData = reactive({
   amount: '',
   description: '',
   date: new Date().toISOString().split('T')[0],
 });
+
+const selectedTagIds = ref<string[]>([]);
 
 const response = reactive({
   status: '',
@@ -37,12 +43,16 @@ const handleAddIncome = async (e: Event) => {
       return;
     }
 
-    await transactionStore.createTransaction({
+    const created = await transactionStore.createTransaction({
       amount,
       description: incomeData.description,
       entryType: 'credit',
       date: incomeData.date,
     });
+
+    if (selectedTagIds.value.length > 0) {
+      await Promise.all(selectedTagIds.value.map((tagId) => tagStore.attachTag(created.id, tagId)));
+    }
 
     response.status = 'success';
     response.message = 'Entrada registrada com sucesso!';
@@ -51,11 +61,15 @@ const handleAddIncome = async (e: Event) => {
     setTimeout(() => {
       router.push({ name: 'management' });
     }, 2000);
-  } catch {
+  } catch (error: any) {
     response.status = 'error';
-    response.message = 'Erro ao registrar entrada. Tente novamente.';
+    response.message = error?.response?.data?.message || 'Erro ao registrar entrada. Tente novamente.';
     response.show = true;
   }
+};
+
+const closeResponse = () => {
+  response.show = false;
 };
 
 const handleCancel = () => {
@@ -67,17 +81,13 @@ const handleCancel = () => {
   <div class="container">
     <div class="card">
       <h2 class="title">Nova Entrada</h2>
-      
-      <div v-if="response.show" class="response-popup" :class="response.status">
-        <div class="popup-content">
-          <div class="icon" :class="response.status">
-            <span v-if="response.status === 'success'">✔</span>
-            <span v-else>✖</span>
-          </div>
-          <h3 class="popup-title">{{ response.status === 'success' ? 'Sucesso!' : 'Erro!' }}</h3>
-          <p class="popup-message">{{ response.message }}</p>
-        </div>
-      </div>
+
+      <ResponsePopUp
+        :status="response.status"
+        :message="response.message"
+        :show="response.show"
+        @close="closeResponse"
+      />
 
       <form @submit="handleAddIncome" class="form">
         
@@ -112,18 +122,19 @@ const handleCancel = () => {
             >
           </div>
         </div>
-        
-        
+
+        <TagPicker v-model="selectedTagIds" />
+
         <div class="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             @click="handleCancel"
             class="btn btn-secondary"
           >
             Cancelar
           </button>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="btn btn-success"
           >
             Salvar
@@ -141,12 +152,12 @@ const handleCancel = () => {
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 175px);
-  background-color: white;
+  background-color: var(--color-surface-soft);
   padding: 20px;
 }
 
 .card {
-  background: white;
+  background: var(--color-surface);
   border-radius: 32px;
   padding: 32px;
   width: 100%;
@@ -158,66 +169,8 @@ const handleCancel = () => {
 .title {
   font-size: 28px;
   font-weight: bold;
-  color: black;
+  color: var(--color-text);
   margin: 0 0 24px 0;
-}
-
-.response-popup {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
-
-.response-popup.success .popup-content {
-  border-top: 4px solid #10b981;
-}
-
-.response-popup.error .popup-content {
-  border-top: 4px solid #ef4444;
-}
-
-.popup-content {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  text-align: center;
-  max-width: 320px;
-}
-
-.icon {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  color: white;
-}
-
-.icon.success {
-  background-color: #10b981;
-}
-
-.icon.error {
-  background-color: #ef4444;
-}
-
-.popup-title {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0 0 8px 0;
-}
-
-.popup-message {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
 }
 
 .form {
@@ -235,24 +188,24 @@ const handleCancel = () => {
 .form-label {
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   font-size: 16px;
   font-family: inherit;
-  background-color: white;
-  color: #1f2937;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #10b981;
+  border-color: var(--color-success);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
@@ -274,19 +227,19 @@ const handleCancel = () => {
   appearance: none;
   padding: 12px 16px;
   padding-right: 40px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
   font-size: 16px;
   font-family: inherit;
-  background-color: white;
-  color: #374151;
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .form-select:focus {
   outline: none;
-  border-color: #10b981;
+  border-color: var(--color-success);
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
@@ -301,7 +254,7 @@ const handleCancel = () => {
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: black;
+  color: var(--color-text);
   pointer-events: none;
 }
 
@@ -320,7 +273,7 @@ const handleCancel = () => {
   user-select: none;
   font-size: 16px;
   font-weight: 500;
-  color: black;
+  color: var(--color-text);
   padding-left: 4px;
 }
 
@@ -328,7 +281,7 @@ const handleCancel = () => {
   width: 16px;
   height: 16px;
   cursor: pointer;
-  accent-color: #10b981;
+  accent-color: var(--color-success);
 }
 
 .recurring-input {
@@ -340,7 +293,7 @@ const handleCancel = () => {
 
 .recurring-text {
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 }
 
 .form-actions {
@@ -362,13 +315,13 @@ const handleCancel = () => {
 }
 
 .btn-secondary {
-  background-color: #f1f1f1;
-  color: black;
-  border: 1px solid #dcdcdc;
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-  background-color: #e5e5e5;
+  background-color: var(--color-border);
 }
 
 .btn-secondary:active {
@@ -376,7 +329,7 @@ const handleCancel = () => {
 }
 
 .btn-success {
-  background-color: #10b981;
+  background-color: var(--color-success);
   color: white;
   box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
 }

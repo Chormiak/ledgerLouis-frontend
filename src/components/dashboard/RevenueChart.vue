@@ -7,15 +7,6 @@
       </div>
       
       <div class="chart-controls">
-        <button class="chart-filter" type="button" @click="showExportMenu = !showExportMenu">
-          <Download :size="16" />
-        </button>
-        
-        <div v-if="showExportMenu" class="export-menu">
-          <button @click="exportToCSV">Exportar CSV</button>
-          <button @click="exportToPDF">Exportar PDF</button>
-        </div>
-
         <select v-model="selectedPeriod" class="period-select">
           <option value="daily">Diário</option>
           <option value="weekly">Semanal</option>
@@ -31,19 +22,30 @@
     </div>
 
     <div class="chart-wrapper">
-      <apexchart type="bar" height="320" :options="chartOptions" :series="chartSeries" />
+      <apexchart
+        :key="`${selectedPeriod}-${source.length}-${isDark}`"
+        type="bar"
+        height="320"
+        :options="chartOptions"
+        :series="chartSeries"
+      />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Download } from 'lucide-vue-next';
 import { useTransactionStore } from '@/stores/transactionStore';
+import { useThemeStore } from '@/stores/themeStore';
+import type { TransactionDto } from '@/services/transactionService';
+
+const props = defineProps<{ transactions?: TransactionDto[] }>();
 
 const transactionStore = useTransactionStore();
+const themeStore = useThemeStore();
+const isDark = computed(() => themeStore.theme === 'dark');
 const selectedPeriod = ref('monthly');
-const showExportMenu = ref(false);
+const source = computed(() => props.transactions ?? transactionStore.transactions);
 
 const chartSeries = computed(() => [
   {
@@ -57,13 +59,13 @@ const chartSeries = computed(() => [
 ]);
 
 const totalIncome = computed(() => 
-  transactionStore.transactions
+  source.value
     .filter(t => t.entryType === 'credit')
     .reduce((sum, t) => sum + t.amount, 0)
 );
 
 const totalExpense = computed(() => 
-  transactionStore.transactions
+  source.value
     .filter(t => t.entryType === 'debit')
     .reduce((sum, t) => sum + t.amount, 0)
 );
@@ -100,10 +102,10 @@ const periodData = computed(() => {
       const dateStr = date.toISOString().split('T')[0];
       categories.push(date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }));
       
-      const dayIncome = transactionStore.transactions
+      const dayIncome = source.value
         .filter(t => t.entryType === 'credit' && t.date === dateStr)
         .reduce((sum, t) => sum + t.amount, 0);
-      const dayExpense = transactionStore.transactions
+      const dayExpense = source.value
         .filter(t => t.entryType === 'debit' && t.date === dateStr)
         .reduce((sum, t) => sum + t.amount, 0);
       
@@ -116,7 +118,7 @@ const periodData = computed(() => {
     incomeData = [0, 0, 0, 0];
     expenseData = [0, 0, 0, 0];
     
-    transactionStore.transactions.forEach((transaction) => {
+    source.value.forEach((transaction) => {
       const date = new Date(transaction.date);
       const weekNum = Math.floor((now.getTime() - date.getTime()) / (7 * 24 * 60 * 60 * 1000));
       
@@ -134,14 +136,14 @@ const periodData = computed(() => {
     incomeData = new Array(12).fill(0);
     expenseData = new Array(12).fill(0);
     
-    transactionStore.transactions.forEach((transaction) => {
+    source.value.forEach((transaction) => {
       const date = new Date(transaction.date);
       const month = date.getMonth();
       
       if (transaction.entryType === 'credit') {
         incomeData[month] = (incomeData[month] ?? 0) + transaction.amount;
       } else {
-        incomeData[month] = (incomeData[month] ?? 0) + transaction.amount;
+        expenseData[month] = (expenseData[month] ?? 0) + transaction.amount;
       }
     });
   } else if (selectedPeriod.value === 'annual') {
@@ -155,14 +157,14 @@ const periodData = computed(() => {
       const year = currentYear - i;
       categories.push(year.toString());
       
-      const yearIncome = transactionStore.transactions
+      const yearIncome = source.value
         .filter(t => {
           const date = new Date(t.date);
           return t.entryType === 'credit' && date.getFullYear() === year;
         })
         .reduce((sum, t) => sum + t.amount, 0);
       
-      const yearExpense = transactionStore.transactions
+      const yearExpense = source.value
         .filter(t => {
           const date = new Date(t.date);
           return t.entryType === 'debit' && date.getFullYear() === year;
@@ -194,31 +196,33 @@ const chartOptions = computed(() => ({
     enabled: false,
   },
   grid: {
-    borderColor: 'rgba(148, 163, 184, 0.16)',
+    borderColor: isDark.value ? 'rgba(163, 170, 184, 0.14)' : 'rgba(148, 163, 184, 0.16)',
     strokeDashArray: 4,
   },
   xaxis: {
     categories: periodData.value?.categories || [],
     labels: {
       style: {
-        colors: '#64748b',
+        colors: isDark.value ? '#a3aab8' : '#64748b',
         fontSize: '12px',
       },
     },
   },
   yaxis: {
+    decimalsInFloat: 1,
     labels: {
       style: {
-        colors: '#64748b',
+        colors: isDark.value ? '#a3aab8' : '#64748b',
         fontSize: '12px',
       },
-      formatter: (value: number) => `R$ ${value / 1000}k`,
+      formatter: (value: number) => `R$ ${Math.round(value / 100) / 10}k`,
     },
   },
   legend: {
     show: false,
   },
   tooltip: {
+    theme: isDark.value ? 'dark' : 'light',
     y: {
       formatter: (value: number) =>
         `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -238,98 +242,14 @@ const chartOptions = computed(() => ({
   ],
 }));
 
-const exportToCSV = () => {
-  const transactions = transactionStore.transactions;
-  const headers = ['Data', 'Descrição', 'Tipo', 'Valor'];
-  const rows = transactions.map(t => [
-    t.date,
-    t.description,
-    t.entryType === 'credit' ? 'Entrada' : 'Saída',
-    t.amount.toFixed(2)
-  ]);
-  
-  const csvContent = [headers, ...rows]
-    .map(row => row.join(','))
-    .join('\n');
-  
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `transacoes_${new Date().toISOString().split('T')[0]}.csv`;
-  link.click();
-};
-
-const exportToPDF = () => {
-  // Simples exportação para PDF usando print
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) return;
-  
-  const transactions = transactionStore.transactions;
-  const totalIncomeVal = totalIncome.value;
-  const totalExpenseVal = totalExpense.value;
-  const balance = totalIncomeVal - totalExpenseVal;
-  
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Relatório Financeiro</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { color: #27B969; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-          th { background-color: #27B969; color: white; }
-          .summary { margin: 20px 0; }
-          .summary div { margin: 10px 0; }
-        </style>
-      </head>
-      <body>
-        <h1>Relatório Financeiro</h1>
-        <p>Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p>
-        
-        <div class="summary">
-          <div><strong>Total de Entradas:</strong> R$ ${totalIncomeVal.toFixed(2)}</div>
-          <div><strong>Total de Saídas:</strong> R$ ${totalExpenseVal.toFixed(2)}</div>
-          <div><strong>Saldo:</strong> R$ ${balance.toFixed(2)}</div>
-        </div>
-        
-        <h2>Transações</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th>Descrição</th>
-              <th>Tipo</th>
-              <th>Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${transactions.map(t => `
-              <tr>
-                <td>${new Date(t.date).toLocaleDateString('pt-BR')}</td>
-                <td>${t.description}</td>
-                <td>${t.entryType === 'credit' ? 'Entrada' : 'Saída'}</td>
-                <td>R$ ${t.amount.toFixed(2)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </body>
-    </html>
-  `);
-  
-  printWindow.document.close();
-  printWindow.print();
-};
 </script>
 
 <style scoped>
 .chart-card {
   padding: 18px;
-  border-radius: 28px;
+  border-radius: 16px;
   border: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
+  background: var(--color-surface);
 }
 
 .chart-header {
@@ -358,58 +278,6 @@ h2 {
   display: flex;
   gap: 10px;
   align-items: center;
-  position: relative;
-}
-
-.chart-filter {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-soft);
-  color: var(--color-text);
-  min-height: 40px;
-  padding: 0 14px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.export-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 100;
-  min-width: 150px;
-}
-
-.export-menu button {
-  display: block;
-  width: 100%;
-  padding: 10px 16px;
-  border: none;
-  background: none;
-  color: var(--color-text);
-  font-size: 14px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.export-menu button:hover {
-  background: var(--color-surface-soft);
-}
-
-.export-menu button:first-child {
-  border-radius: 12px 12px 0 0;
-}
-
-.export-menu button:last-child {
-  border-radius: 0 0 12px 12px;
 }
 
 .period-select {

@@ -1,5 +1,17 @@
 <script lang="ts" setup>
-import UserInfo from "../components/UserInfo.vue"
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import UserInfo from "../components/user/UserInfo.vue"
+import { useUserStore } from '@/stores/userStore'
+
+const router = useRouter()
+const userStore = useUserStore()
+
+onMounted(() => {
+  if (!userStore.accessToken) {
+    router.replace({ name: 'entrar' })
+  }
+})
 </script>
 <template>
     <div class="main-container">

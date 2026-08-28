@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
-import { reactive } from 'vue';
-import CompanyService from '@/services/companyService';
+import { reactive, ref } from 'vue';
+import CompanyService, { type CompanyRole, type UserCompanyDto } from '@/services/companyService';
 
 const STORAGE_KEY = 'ledger_company_data';
 
@@ -22,6 +22,7 @@ export const useCompanyStore = defineStore('company', () => {
   const company = reactive({
     ...defaultCompany,
   });
+  const companies = ref<UserCompanyDto[]>([]);
 
   // Carregar dados do localStorage na inicialização
   const loadCompanyData = () => {
@@ -72,6 +73,7 @@ export const useCompanyStore = defineStore('company', () => {
     try {
       const service = new CompanyService();
       const userCompanies = await service.getUserCompanies();
+      companies.value = userCompanies;
       if (userCompanies.length === 0) return;
 
       const current = userCompanies.find((c) => c.companyId === company.id) ?? userCompanies[0]!;
@@ -83,6 +85,9 @@ export const useCompanyStore = defineStore('company', () => {
       setCompanyData({
         id: current.companyId,
         name: current.companyName,
+        cnpj: current.cnpj,
+        email: current.email ?? '',
+        phone: current.phone ?? '',
         role: safeRole,
         hasCompany: true,
       });
@@ -91,12 +96,28 @@ export const useCompanyStore = defineStore('company', () => {
     }
   };
 
+  const selectCompany = (userCompany: UserCompanyDto) => {
+    const safeRole: CompanyRole =
+      userCompany.role === 'owner' || userCompany.role === 'admin' || userCompany.role === 'viewer'
+        ? userCompany.role
+        : 'viewer';
+
+    setCompanyData({
+      id: userCompany.companyId,
+      name: userCompany.companyName,
+      role: safeRole,
+      hasCompany: true,
+    });
+  };
+
   return {
     company,
+    companies,
     setCompanyData,
     addMember,
     clearCompany,
     loadCompanyData,
     syncFromBackend,
+    selectCompany,
   };
 });
