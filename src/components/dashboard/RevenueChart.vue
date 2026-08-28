@@ -22,7 +22,13 @@
     </div>
 
     <div class="chart-wrapper">
-      <apexchart type="bar" height="320" :options="chartOptions" :series="chartSeries" />
+      <apexchart
+        :key="`${selectedPeriod}-${source.length}-${isDark}`"
+        type="bar"
+        height="320"
+        :options="chartOptions"
+        :series="chartSeries"
+      />
     </div>
   </section>
 </template>
@@ -203,12 +209,13 @@ const chartOptions = computed(() => ({
     },
   },
   yaxis: {
+    decimalsInFloat: 1,
     labels: {
       style: {
         colors: isDark.value ? '#a3aab8' : '#64748b',
         fontSize: '12px',
       },
-      formatter: (value: number) => `R$ ${value / 1000}k`,
+      formatter: (value: number) => `R$ ${Math.round(value / 100) / 10}k`,
     },
   },
   legend: {

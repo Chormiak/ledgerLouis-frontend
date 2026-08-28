@@ -70,30 +70,11 @@ const chartOptions = computed(() => ({
   plotOptions: {
     pie: {
       donut: {
-        size: '66%',
-        labels: {
-          show: true,
-          name: {
-            show: true,
-            offsetY: 16,
-            fontSize: '12px',
-            color: isDark.value ? '#a3aab8' : '#64748b',
-          },
-          value: {
-            show: true,
-            fontSize: '22px',
-            fontWeight: 800,
-            color: isDark.value ? '#f1f3f6' : '#111827',
-            formatter: (value: string) => formatCurrency(Number(value)),
-          },
-          total: {
-            show: true,
-            label: 'Total marcado',
-            fontSize: '13px',
-            color: isDark.value ? '#a3aab8' : '#64748b',
-            formatter: () => formatCurrency(grandTotal.value),
-          },
-        },
+        size: '72%',
+        // Labels nativos do Apex desligados — o centro é renderizado por cima
+        // com HTML/CSS nosso (.donut-center), que dá controle total do
+        // espaçamento sem brigar com o posicionamento interno do Apex.
+        labels: { show: false },
       },
     },
   },
@@ -122,7 +103,18 @@ const chartOptions = computed(() => ({
     <div v-else class="expenses-layout">
       <div class="donut-panel">
         <div class="chart-wrapper">
-          <apexchart type="donut" height="260" :options="chartOptions" :series="chartSeries" />
+          <apexchart
+            :key="`${aggregates.length}-${isDark}`"
+            type="donut"
+            height="260"
+            :options="chartOptions"
+            :series="chartSeries"
+          />
+
+          <div class="donut-center" aria-hidden="true">
+            <span class="donut-center-label">Total marcado</span>
+            <strong class="donut-center-value">{{ formatCurrency(grandTotal) }}</strong>
+          </div>
         </div>
       </div>
 
@@ -188,9 +180,38 @@ h2 {
 }
 
 .chart-wrapper {
+  position: relative;
   width: 100%;
   max-width: 300px;
   min-width: 0;
+}
+
+.donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 62%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-center-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.donut-center-value {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
 .breakdown-list {

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import { Plus, Tag as TagIcon } from 'lucide-vue-next';
+import { Plus, Tag as TagIcon, X } from 'lucide-vue-next';
 import TagListItem from './TagListItem.vue';
+import PrimaryButton from '@/components/ui/PrimaryButton.vue';
 import { useTagStore } from '@/stores/tagStore';
 import { useCompanyStore } from '@/stores/CompanyStore';
 
@@ -82,27 +83,27 @@ export default {
 </script>
 
 <template>
-  <div class="category-manager">
-    <div class="manager-header">
-      <h3>
-        <TagIcon :size="18" />
-        Tags
-      </h3>
-      <button class="btn-add" @click="showForm = !showForm" v-if="!showForm">
-        <Plus :size="18" />
-        Nova Tag
-      </button>
-    </div>
+  <div class="panel">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">
+          <TagIcon :size="18" />
+          Tags
+        </h2>
+        <p class="panel-subtitle">Use tags para catalogar transações com um ou mais rótulos livres.</p>
+      </div>
 
-    <p class="manager-hint">Use tags para catalogar transações com um ou mais rótulos livres.</p>
+      <PrimaryButton v-if="!showForm" variant="neutral" compact @click="showForm = true">
+        <Plus :size="15" />
+        Nova Tag
+      </PrimaryButton>
+    </div>
 
     <div v-if="message.show" class="message" :class="message.status">
       {{ message.text }}
     </div>
 
     <div v-if="showForm" class="form-container">
-      <h4>Adicionar Nova Tag</h4>
-
       <div class="form-group">
         <label>Nome da Tag</label>
         <input
@@ -110,23 +111,25 @@ export default {
           type="text"
           placeholder="Ex: Fornecedores"
           class="input"
+          autofocus
           @keyup.enter="handleAddTag"
         />
       </div>
 
       <div class="form-actions">
-        <button class="btn-success" @click="handleAddTag" :disabled="tagStore.loading">
-          {{ tagStore.loading ? 'Salvando...' : 'Adicionar' }}
-        </button>
-        <button class="btn-cancel" @click="resetForm">Cancelar</button>
+        <PrimaryButton compact :loading="tagStore.loading" @click="handleAddTag">Adicionar</PrimaryButton>
+        <PrimaryButton variant="neutral" compact @click="resetForm">
+          <X :size="15" />
+          Cancelar
+        </PrimaryButton>
       </div>
     </div>
 
-    <p v-if="!tagStore.loading && tagStore.tags.length === 0" class="empty-hint">
+    <p v-if="!tagStore.loading && tagStore.tags.length === 0" class="empty-state">
       Nenhuma tag cadastrada ainda. Crie tags para organizar suas transações.
     </p>
 
-    <div class="categories-list" v-else>
+    <div class="tags-list" v-else>
       <TagListItem
         v-for="tag in tagStore.tags"
         :key="tag.id"
@@ -139,99 +142,62 @@ export default {
 </template>
 
 <style scoped>
-.category-manager {
+.panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
+  border-radius: 16px;
+  padding: 28px;
 }
 
-.manager-header {
+.panel-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--color-border);
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-.manager-header h3 {
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-text);
   margin: 0;
-  font-size: 1.3rem;
-  color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.manager-hint {
-  margin: 12px 0 20px;
+.panel-subtitle {
+  margin-top: 4px;
   color: var(--color-text-secondary);
-  font-size: 0.88rem;
-}
-
-.btn-add {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-add:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
+  font-size: 0.9rem;
 }
 
 .message {
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 16px;
-  font-weight: 500;
-  animation: slideIn 0.3s ease;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .message.success {
-  background: rgba(29, 185, 84, 0.1);
-  color: #27ae60;
-  border: 1px solid rgba(29, 185, 84, 0.2);
+  background: var(--color-primary-glow);
+  color: var(--color-success-dark);
 }
 
 .message.error {
-  background: rgba(255, 68, 68, 0.1);
-  color: #c41e3a;
-  border: 1px solid rgba(255, 68, 68, 0.2);
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
 .form-container {
-  background: var(--color-bg);
+  background: var(--color-surface-soft);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 14px;
   margin-bottom: 20px;
   border: 1px solid var(--color-border);
-}
-
-.form-container h4 {
-  margin: 0 0 16px 0;
-  color: var(--color-text);
 }
 
 .form-group {
@@ -248,9 +214,9 @@ export default {
 
 .input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-input);
   font-size: 0.95rem;
   font-family: inherit;
   background: var(--color-surface);
@@ -261,64 +227,24 @@ export default {
 .input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
 .form-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 10px;
 }
 
-.btn-success {
-  flex: 1;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-success:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3);
-}
-
-.btn-success:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-cancel {
-  flex: 1;
-  background: var(--color-border);
-  color: var(--color-text);
-  border: none;
-  padding: 12px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-cancel:hover {
-  background: var(--color-text-secondary);
-  color: white;
-}
-
-.empty-hint {
+.empty-state {
   color: var(--color-text-secondary);
   font-size: 0.9rem;
-  padding: 14px;
-  background: var(--color-bg);
-  border-radius: 8px;
+  padding: 16px;
+  background: var(--color-surface-soft);
+  border-radius: 12px;
   border: 1px dashed var(--color-border);
 }
 
-.categories-list {
+.tags-list {
   display: flex;
   flex-direction: column;
   gap: 10px;

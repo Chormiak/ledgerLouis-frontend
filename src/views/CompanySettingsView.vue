@@ -9,28 +9,49 @@
             <h1>{{ companyName }}</h1>
           </div>
         </div>
-        <button class="danger-button" @click="leaveCompany">Sair da empresa</button>
+        <PrimaryButton variant="danger" compact @click="leaveCompany">
+          <LogOut :size="15" />
+          Sair da empresa
+        </PrimaryButton>
       </header>
 
       <section class="panel">
-        <h2 class="panel-title">Dados da empresa</h2>
+        <h2 class="panel-title">
+          <Building2 :size="18" />
+          Dados da empresa
+        </h2>
 
-        <div class="field-list">
-          <div class="field-row">
-            <span class="field-label">Nome</span>
-            <span class="field-value">{{ companyStore.company.name || 'Não informado' }}</span>
+        <div class="info-grid">
+          <div class="info-tile">
+            <div class="info-icon"><Building2 :size="16" /></div>
+            <div>
+              <span class="info-label">Nome</span>
+              <strong class="info-value">{{ companyStore.company.name || 'Não informado' }}</strong>
+            </div>
           </div>
-          <div class="field-row">
-            <span class="field-label">CNPJ</span>
-            <span class="field-value">{{ companyStore.company.cnpj || 'Não informado' }}</span>
+
+          <div class="info-tile">
+            <div class="info-icon"><Fingerprint :size="16" /></div>
+            <div>
+              <span class="info-label">CNPJ</span>
+              <strong class="info-value">{{ companyStore.company.cnpj || 'Não informado' }}</strong>
+            </div>
           </div>
-          <div class="field-row">
-            <span class="field-label">Email</span>
-            <span class="field-value">{{ companyStore.company.email || 'Não informado' }}</span>
+
+          <div class="info-tile">
+            <div class="info-icon"><Mail :size="16" /></div>
+            <div>
+              <span class="info-label">Email</span>
+              <strong class="info-value">{{ companyStore.company.email || 'Não informado' }}</strong>
+            </div>
           </div>
-          <div class="field-row">
-            <span class="field-label">Telefone</span>
-            <span class="field-value">{{ companyStore.company.phone || 'Não informado' }}</span>
+
+          <div class="info-tile">
+            <div class="info-icon"><Phone :size="16" /></div>
+            <div>
+              <span class="info-label">Telefone</span>
+              <strong class="info-value">{{ companyStore.company.phone || 'Não informado' }}</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -38,10 +59,16 @@
       <section class="panel">
         <header class="panel-header">
           <div>
-            <h2 class="panel-title">Membros</h2>
+            <h2 class="panel-title">
+              <Users :size="18" />
+              Membros
+            </h2>
             <p class="panel-subtitle">Convide e acompanhe quem faz parte da sua empresa.</p>
           </div>
-          <button class="ghost-button" @click="loadMembers">Atualizar</button>
+          <PrimaryButton variant="neutral" compact @click="loadMembers">
+            <RefreshCw :size="14" />
+            Atualizar
+          </PrimaryButton>
         </header>
 
         <p v-if="membersLoading" class="empty-state">Carregando membros...</p>
@@ -84,35 +111,52 @@
           </PrimaryButton>
         </form>
         <p v-if="inviteError" class="error-message">{{ inviteError }}</p>
-
-        <section class="panel" style="margin-top: 24px;">
-          <header class="panel-header">
-            <div>
-              <h2 class="panel-title">Convites pendentes</h2>
-              <p class="panel-subtitle">Gerencie convites enviados.</p>
-            </div>
-            <button class="ghost-button" @click="loadInvitations">Atualizar</button>
-          </header>
-          <p v-if="invitationsLoading" class="empty-state">Carregando convites...</p>
-          <p v-else-if="invitations.length === 0" class="empty-state">Nenhum convite pendente.</p>
-          <ul v-else class="member-list">
-            <li v-for="invitation in invitations" :key="invitation.id">
-              <div>
-                <strong>{{ invitation.email }}</strong>
-                <span>Função: {{ invitation.role }}</span>
-                <p class="invitation-meta">Expira em: {{ formatDate(invitation.expiresAt) }}</p>
-              </div>
-              <button class="danger-button" @click="handleRevoke(invitation)">Revogar</button>
-            </li>
-          </ul>
-        </section>
       </section>
 
-      <div class="management-stack">
-        <TagManager />
-        <CategoryManager />
-        <RecurringTransactionManager />
-      </div>
+      <section class="panel">
+        <header class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <MailCheck :size="18" />
+              Convites pendentes
+            </h2>
+            <p class="panel-subtitle">Gerencie convites enviados.</p>
+          </div>
+          <PrimaryButton variant="neutral" compact @click="loadInvitations">
+            <RefreshCw :size="14" />
+            Atualizar
+          </PrimaryButton>
+        </header>
+
+        <p v-if="invitationsLoading" class="empty-state">Carregando convites...</p>
+        <p v-else-if="invitations.length === 0" class="empty-state">Nenhum convite pendente.</p>
+
+        <ul v-else class="member-list">
+          <li v-for="invitation in invitations" :key="invitation.id">
+            <div>
+              <strong>{{ invitation.email }}</strong>
+              <span>Função: {{ invitation.role }}</span>
+              <p class="invitation-meta">Expira em: {{ formatDate(invitation.expiresAt) }}</p>
+            </div>
+            <PrimaryButton variant="danger" compact @click="handleRevoke(invitation)">Revogar</PrimaryButton>
+          </li>
+        </ul>
+      </section>
+
+      <section class="management-section">
+        <header class="section-header">
+          <div class="section-icon"><SlidersHorizontal :size="18" /></div>
+          <div>
+            <h2 class="section-title">Gerenciamento</h2>
+            <p class="section-subtitle">Organize tags e configure lançamentos que se repetem automaticamente.</p>
+          </div>
+        </header>
+
+        <div class="management-stack">
+          <TagManager />
+          <RecurringTransactionManager />
+        </div>
+      </section>
     </div>
   </main>
 </template>
@@ -120,9 +164,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { LogOut, RefreshCw, Building2, Fingerprint, Mail, Phone, Users, MailCheck, SlidersHorizontal } from 'lucide-vue-next';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import CompanyService, { type CompanyRole } from '@/services/companyService';
-import CategoryManager from '@/components/company/CategoryManager.vue';
 import RecurringTransactionManager from '@/components/company/RecurringTransactionManager.vue';
 import TagManager from '@/components/company/TagManager.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
@@ -285,6 +329,9 @@ onMounted(async () => {
 .settings-container {
   max-width: 760px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .page-header {
@@ -292,7 +339,6 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  margin-bottom: 36px;
 }
 
 .identity {
@@ -334,32 +380,11 @@ h1 {
   margin: 0;
 }
 
-.danger-button {
-  flex-shrink: 0;
-  padding: 12px 20px;
-  border-radius: 999px;
-  border: 1.5px solid var(--color-danger);
-  background: transparent;
-  color: var(--color-danger);
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.danger-button:hover {
-  background: var(--color-danger);
-  color: var(--color-surface);
-}
-
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 28px;
-  margin-bottom: 20px;
 }
 
 .panel-header {
@@ -371,11 +396,23 @@ h1 {
 }
 
 .panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 800;
   color: var(--color-text);
+  margin: 0 0 18px;
+}
+
+.panel-header .panel-title {
   margin: 0;
+}
+
+.panel-title svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .panel-subtitle {
@@ -384,52 +421,50 @@ h1 {
   font-size: 0.9rem;
 }
 
-.field-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.field-row {
+.info-grid {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 20px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--color-border);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
-.field-row:first-child {
-  border-top: 1px solid var(--color-border);
+.info-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--color-surface-soft);
+  min-width: 0;
 }
 
-.field-label {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+.info-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-glow);
+  color: var(--color-primary);
 }
 
-.field-value {
-  font-size: 14.5px;
-  color: var(--color-text);
-}
-
-.ghost-button {
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-family: var(--font-body);
+.info-label {
+  display: block;
+  font-size: 12px;
   font-weight: 700;
-  font-size: 13.5px;
-  cursor: pointer;
-  border: 1.5px solid var(--color-text-tertiary);
-  background: transparent;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--color-text-secondary);
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
-  white-space: nowrap;
+  margin-bottom: 4px;
 }
 
-.ghost-button:hover {
-  border-color: var(--color-text-secondary);
+.info-value {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
   color: var(--color-text);
-  background: var(--color-surface-alt);
+  overflow-wrap: anywhere;
 }
 
 .empty-state {
@@ -462,6 +497,10 @@ h1 {
   border-top: 1px solid var(--color-border);
 }
 
+.member-list:last-child {
+  margin-bottom: 0;
+}
+
 .member-list strong {
   display: block;
   color: var(--color-text);
@@ -473,16 +512,16 @@ h1 {
   font-size: 13px;
 }
 
-.role-badge {
-  flex-shrink: 0;
-  padding: 5px 12px;
-  border-radius: 999px;
 .invitation-meta {
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--color-text-secondary);
 }
 
+.role-badge {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
   text-transform: capitalize;
@@ -546,6 +585,45 @@ select:focus {
   margin: 12px 0 0;
 }
 
+.management-section {
+  border-radius: 20px;
+  padding: 24px;
+  background: linear-gradient(180deg, var(--color-primary-glow) 0%, transparent 140px);
+  border: 1px solid var(--color-border);
+}
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.section-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-success-gradient);
+  color: white;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.section-subtitle {
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
 .management-stack {
   display: flex;
   flex-direction: column;
@@ -563,7 +641,7 @@ select:focus {
     align-items: flex-start;
   }
 
-  .danger-button {
+  .page-header :deep(.primary-btn) {
     align-self: stretch;
   }
 
@@ -571,9 +649,12 @@ select:focus {
     padding: 22px;
   }
 
-  .field-row {
+  .info-grid {
     grid-template-columns: 1fr;
-    gap: 6px;
+  }
+
+  .management-section {
+    padding: 18px;
   }
 
   .invite-row {

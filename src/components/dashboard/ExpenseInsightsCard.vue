@@ -117,15 +117,17 @@ const overallChartOptions = computed(() => ({
     toolbar: { show: false },
     fontFamily: 'var(--font-body)',
   },
-  colors: ['#27B969', '#94a3b8'],
+  colors: ['#27B969', '#f59e0b'],
   stroke: {
     curve: 'smooth',
-    width: [3, 2],
+    width: [3, 3],
     dashArray: [0, 6],
   },
   markers: {
-    size: 4,
-    strokeWidth: 0,
+    size: [4, 7],
+    strokeWidth: [0, 2],
+    strokeColors: '#fff',
+    hover: { size: 9 },
   },
   fill: {
     type: ['gradient', 'solid'],
@@ -136,7 +138,25 @@ const overallChartOptions = computed(() => ({
     },
     opacity: [1, 0],
   },
-  dataLabels: { enabled: false },
+  dataLabels: {
+    enabled: true,
+    enabledOnSeries: [1],
+    formatter: (value: number) => (value ? formatCurrency(value) : ''),
+    offsetY: -14,
+    style: {
+      fontSize: '12px',
+      fontWeight: 800,
+      colors: ['#f59e0b'],
+    },
+    background: {
+      enabled: true,
+      foreColor: '#f59e0b',
+      borderColor: '#f59e0b',
+      borderWidth: 1.5,
+      padding: 5,
+      opacity: isDark.value ? 0.16 : 0.1,
+    },
+  },
   grid: {
     borderColor: gridLineColor.value,
     strokeDashArray: 4,
@@ -238,7 +258,13 @@ const tagSparklineOptions = (tagId: string) => ({
           </div>
 
           <div class="chart-wrapper">
-            <apexchart type="line" height="220" :options="overallChartOptions" :series="overallChartSeries" />
+            <apexchart
+              :key="`${overall?.months.length ?? 0}-${isDark}`"
+              type="line"
+              height="220"
+              :options="overallChartOptions"
+              :series="overallChartSeries"
+            />
           </div>
         </template>
       </div>
