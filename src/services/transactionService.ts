@@ -49,10 +49,7 @@ export default class TransactionService {
 
   async createTransaction(data: CreateTransactionDto): Promise<TransactionDto> {
     const companyId = this.getCompanyId();
-    const response = await axiosInstance.post<TransactionDto>(`/companies/${companyId}/transactions`, {
-      ...data,
-      companyId,
-    });
+    const response = await axiosInstance.post<TransactionDto>(`/companies/${companyId}/transactions`, data);
     return response.data;
   }
 

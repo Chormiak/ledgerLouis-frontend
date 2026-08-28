@@ -31,8 +31,9 @@ export default class UserService {
     
     async login(userLoginData: userLoginType) {
         try {
-            console.log('Dados de login recebidos:', userLoginData);
-            const response = await axiosInstance.post('/auth/login', userLoginData)
+            const email = userLoginData.email.trim().toLowerCase()
+            const { password } = userLoginData
+            const response = await axiosInstance.post('/auth/login', { email, password })
             const { accessToken, refreshToken } = response.data
 
             const userStore = useUserStore()
@@ -40,8 +41,6 @@ export default class UserService {
                 accessToken,
                 refreshToken
             })
-
-            localStorage.setItem('token', accessToken)
             
             return response.data
         } catch (error) {
@@ -107,7 +106,6 @@ export default class UserService {
             // Limpar dados da empresa
             companyStore.clearCompany()
             
-            localStorage.removeItem('token')
             console.log('Usuário deslogado com sucesso')
             return true
         } catch (error) {

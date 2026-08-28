@@ -19,16 +19,22 @@ const router = createRouter({
       meta: { title: 'Criar Empresa', description: 'Informe os dados da sua empresa para começar.' },
     },
     {
-      path: '/company/join',
-      name: 'companyJoin',
-      component: () => import('../views/CompanyJoinView.vue'),
-      meta: { title: 'Entrar em Empresa', description: 'Acesse uma empresa existente sem autenticação de backend.' },
-    },
-    {
       path: '/company/settings',
       name: 'companySettings',
       component: () => import('../views/CompanySettingsView.vue'),
       meta: { title: 'Configurações da Empresa', description: 'Gerencie sua empresa e atualize seus dados.' },
+    },
+    {
+      path: '/invitations',
+      name: 'invitations',
+      component: () => import('../views/InvitationsView.vue'),
+      meta: { title: 'Convites', description: 'Veja e aceite convites para participar de empresas.' },
+    },
+    {
+      path: '/invitations/:token',
+      name: 'invitationDetails',
+      component: () => import('../views/InvitationsView.vue'),
+      meta: { title: 'Convite', description: 'Aceite o convite para participar de uma empresa.' },
     },
     {
       path: '/',

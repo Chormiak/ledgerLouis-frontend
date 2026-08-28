@@ -14,9 +14,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    // ✅ Pega o accessToken da store (está em memória)
     const userStore = useUserStore()
-    console.log('Interceptando requisição. Access token atual na store:', userStore.accessToken)
     const token = userStore.accessToken
 
     if (token) {
@@ -32,12 +30,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      console.warn('Token expirado ou inválido')
       const userStore = useUserStore()
-      
-      // Apenas limpa o token, não redireciona aqui
-      // O redirecionamento será feito pelo App.vue ou pela página de login
-      userStore.clearTokens()
+      const requestToken = error.config?.headers?.Authorization?.replace('Bearer ', '')
+
+      // Uma resposta atrasada da sessão anterior não pode apagar o token novo.
+      if (requestToken && requestToken === userStore.accessToken) {
+        userStore.clearTokens()
+      }
     }
 
     if (error.response?.status === 500) {

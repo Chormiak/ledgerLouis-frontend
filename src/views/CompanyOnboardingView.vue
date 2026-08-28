@@ -9,18 +9,27 @@
         </p>
       </header>
 
-      <div class="option-list">
-        <button class="option-row" @click="goToJoin">
+      <div v-if="loading" class="loading-state">Carregando suas empresas...</div>
+
+      <div v-else-if="companyStore.companies.length > 0" class="option-list">
+        <button
+          v-for="userCompany in companyStore.companies"
+          :key="userCompany.companyId"
+          class="option-row"
+          @click="enterCompany(userCompany)"
+        >
           <span class="option-icon">
-            <KeyRound :size="20" />
+            <Building2 :size="20" />
           </span>
           <span class="option-copy">
-            <strong>Entrar em uma empresa</strong>
-            <span>Usar convite ou código para acessar a conta de uma empresa já existente.</span>
+            <strong>{{ userCompany.companyName }}</strong>
+            <span>Participante como {{ userCompany.role }}</span>
           </span>
           <ArrowRight class="option-arrow" :size="18" />
         </button>
+      </div>
 
+      <div class="option-list">
         <button class="option-row" @click="goToCreate">
           <span class="option-icon">
             <Building2 :size="20" />
@@ -37,25 +46,30 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { KeyRound, Building2, ArrowRight } from 'lucide-vue-next';
+import { Building2, ArrowRight } from 'lucide-vue-next';
 import { useCompanyStore } from '@/stores/CompanyStore';
+import type { UserCompanyDto } from '@/services/companyService';
 
 const router = useRouter();
 const companyStore = useCompanyStore();
-
-const goToJoin = () => {
-  router.push({ name: 'companyJoin' });
-};
+const loading = ref(true);
 
 const goToCreate = () => {
   router.push({ name: 'companyCreate' });
 };
 
-onMounted(() => {
-  if (companyStore.company.hasCompany) {
-    router.replace({ name: 'companySettings' });
+const enterCompany = (userCompany: UserCompanyDto) => {
+  companyStore.selectCompany(userCompany);
+  router.push({ name: 'companySettings' });
+};
+
+onMounted(async () => {
+  try {
+    await companyStore.syncFromBackend();
+  } finally {
+    loading.value = false;
   }
 });
 </script>

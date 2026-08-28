@@ -57,14 +57,14 @@
           </li>
         </ul>
 
-        <form class="invite-row" @submit.prevent="handleAddMember">
+        <form class="invite-row" @submit.prevent="handleCreateInvitation">
           <div class="invite-field">
             <BaseInput
               id="memberEmail"
               label="Email do membro"
               type="email"
               placeholder="email@dominio.com"
-              v-model="newMember.email"
+              v-model="newInvite.email"
               :error="errors.email"
               required
             />
@@ -72,7 +72,7 @@
 
           <div class="invite-role">
             <label for="memberRole">Função</label>
-            <select id="memberRole" v-model="newMember.role">
+            <select id="memberRole" v-model="newInvite.role">
               <option value="owner">Owner</option>
               <option value="admin">Admin</option>
               <option value="viewer">Viewer</option>
@@ -84,6 +84,28 @@
           </PrimaryButton>
         </form>
         <p v-if="inviteError" class="error-message">{{ inviteError }}</p>
+
+        <section class="panel" style="margin-top: 24px;">
+          <header class="panel-header">
+            <div>
+              <h2 class="panel-title">Convites pendentes</h2>
+              <p class="panel-subtitle">Gerencie convites enviados.</p>
+            </div>
+            <button class="ghost-button" @click="loadInvitations">Atualizar</button>
+          </header>
+          <p v-if="invitationsLoading" class="empty-state">Carregando convites...</p>
+          <p v-else-if="invitations.length === 0" class="empty-state">Nenhum convite pendente.</p>
+          <ul v-else class="member-list">
+            <li v-for="invitation in invitations" :key="invitation.id">
+              <div>
+                <strong>{{ invitation.email }}</strong>
+                <span>Função: {{ invitation.role }}</span>
+                <p class="invitation-meta">Expira em: {{ formatDate(invitation.expiresAt) }}</p>
+              </div>
+              <button class="danger-button" @click="handleRevoke(invitation)">Revogar</button>
+            </li>
+          </ul>
+        </section>
       </section>
 
       <div class="management-stack">
@@ -116,8 +138,10 @@ const inviteLoading = ref(false);
 const inviteError = ref('');
 
 const members = ref([] as Array<{ userId: string; name: string; email: string; role: CompanyRole; createdAt: string }>);
-const newMember = reactive<{ email: string; role: CompanyRole }>({ email: '', role: 'viewer' });
+const newInvite = reactive<{ email: string; role: CompanyRole }>({ email: '', role: 'viewer' });
 const errors = reactive({ email: false });
+const invitations = ref<Array<{ id: string; email: string; role: CompanyRole; expiresAt: string }>>([]);
+const invitationsLoading = ref(false);
 
 const setCompanyFromUserCompany = (userCompany: { companyId: string; companyName: string; role: string }) => {
   const safeRole: CompanyRole =
@@ -160,11 +184,25 @@ const loadMembers = async () => {
   }
 };
 
-const handleAddMember = async () => {
+const loadInvitations = async () => {
+  if (!companyStore.company.id) return;
+  invitationsLoading.value = true;
+  try {
+    const response = await service.listInvitations(companyStore.company.id, { limit: 50 });
+    invitations.value = response.items;
+  } catch (error) {
+    console.error('Erro ao carregar convites:', error);
+    invitations.value = [];
+  } finally {
+    invitationsLoading.value = false;
+  }
+};
+
+const handleCreateInvitation = async () => {
   errors.email = false;
   inviteError.value = '';
 
-  if (!newMember.email.trim()) {
+  if (!newInvite.email.trim()) {
     errors.email = true;
     return;
   }
@@ -176,13 +214,13 @@ const handleAddMember = async () => {
 
   inviteLoading.value = true;
   try {
-    await service.addCompanyMember(companyStore.company.id, newMember.email.trim(), newMember.role);
-    companyStore.addMember(newMember.email.trim());
-    newMember.email = '';
-    newMember.role = 'viewer';
-    await loadMembers();
+    await service.createInvitation(companyStore.company.id, newInvite.email.trim(), newInvite.role);
+    newInvite.email = '';
+    newInvite.role = 'viewer';
+    inviteError.value = '';
+    await loadInvitations();
   } catch (error) {
-    console.error('Erro ao adicionar membro:', error);
+    console.error('Erro ao criar convite:', error);
     const resp =
       typeof error === 'object' && error !== null && 'response' in error
         ? (error as { response?: { data?: { error?: string } } }).response?.data
@@ -202,6 +240,22 @@ const handleAddMember = async () => {
   }
 };
 
+const handleRevoke = async (invitation: { id: string }) => {
+  if (!companyStore.company.id) return;
+  try {
+    await service.revokeInvitation(companyStore.company.id, invitation.id);
+    await loadInvitations();
+  } catch (error) {
+    console.error('Erro ao revogar convite:', error);
+  }
+};
+
+const formatDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString('pt-BR');
+};
+
 const leaveCompany = () => {
   companyStore.clearCompany();
   router.replace({ name: 'company' });
@@ -217,6 +271,7 @@ onMounted(async () => {
   if (!companyStore.company.hasCompany) return;
   await ensureCompanyId();
   await loadMembers();
+  await loadInvitations();
 });
 </script>
 
@@ -422,6 +477,12 @@ h1 {
   flex-shrink: 0;
   padding: 5px 12px;
   border-radius: 999px;
+.invitation-meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
   font-size: 12px;
   font-weight: 700;
   text-transform: capitalize;
