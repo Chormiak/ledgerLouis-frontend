@@ -6,7 +6,7 @@
         <h2>Atividade recente</h2>
       </div>
 
-      <button class="transactions-action" type="button">Ver todas</button>
+      <button class="transactions-action" type="button" @click="router.push({ name: 'transactions' })">Ver todas</button>
     </header>
 
     <ul class="transactions-list">
@@ -25,9 +25,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import TransactionItem from '@/components/dashboard/TransactionItem.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import type { TransactionDto } from '@/services/transactionService';
+
+const router = useRouter();
 
 const props = defineProps<{
   transactions?: TransactionDto[];

@@ -65,6 +65,12 @@ const router = createRouter({
       meta: { title: 'Configurações da Empresa', description: 'Gerencie sua empresa, membros e configurações.' },
     },
     {
+      path: '/transactions',
+      name: 'transactions',
+      component: () => import('../views/TransactionsView.vue'),
+      meta: { title: 'Transações', description: 'Consulte e exporte todas as transações registradas.' },
+    },
+    {
       path: '/reports',
       name: 'reports',
       component: () => import('../views/DashboardView.vue'),

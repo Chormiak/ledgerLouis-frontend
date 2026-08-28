@@ -245,10 +245,6 @@ const tagSparklineOptions = (tagId: string) => ({
               <span class="stat-tile-label">Desvio padrão</span>
               <strong class="stat-tile-value">{{ formatCurrency(overall.standardDeviation) }}</strong>
             </div>
-            <div class="stat-tile">
-              <span class="stat-tile-label">Variância</span>
-              <strong class="stat-tile-value">{{ formatCurrency(overall.variance) }}</strong>
-            </div>
             <div class="stat-tile stat-tile--forecast">
               <span class="stat-tile-label">Previsão próx. mês</span>
               <strong class="stat-tile-value">
