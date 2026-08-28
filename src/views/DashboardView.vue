@@ -1,7 +1,7 @@
 <template>
   <main class="dashboard-page">
     <div class="dashboard-shell">
-      <DashboardHeader />
+      <DashboardHeader @export="handleExport" />
 
       <TagFilterChips />
 
@@ -112,6 +112,7 @@ import ExpenseInsightsCard from '@/components/dashboard/ExpenseInsightsCard.vue'
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useTagStore } from '@/stores/tagStore';
+import { exportTransactionsCsv, exportTransactionsPdf } from '@/utils/exportTransactions';
 
 const transactionStore = useTransactionStore();
 const companyStore = useCompanyStore();
@@ -195,6 +196,14 @@ const exitsDescription = computed(() =>
 const countDescription = computed(() =>
   activeTagName.value ? `Total de transações · Tag: ${activeTagName.value}` : 'Total de transações',
 );
+
+const handleExport = (format: 'csv' | 'pdf') => {
+  if (format === 'csv') {
+    exportTransactionsCsv(filteredTransactions.value, tagStore.transactionTagsMap);
+  } else {
+    exportTransactionsPdf(filteredTransactions.value, tagStore.transactionTagsMap, companyStore.company.name);
+  }
+};
 </script>
 
 <style scoped>
