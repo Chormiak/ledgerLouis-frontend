@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "symbol": "PETR4",
+      "regularMarketPrice": 37.85,
+      "marketCap": 492000000000,
+      "earningsPerShare": 6.1,
+      "financialData": {
+        "totalRevenue": 490000000000,
+        "ebitda": 240000000000,
+        "totalDebt": 320000000000,
+        "totalCash": 70000000000,
+        "returnOnEquity": 0.21,
+        "financialCurrency": "BRL"
+      }
+    }
+  ]
+}

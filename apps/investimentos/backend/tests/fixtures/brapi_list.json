@@ -1,0 +1,8 @@
+{
+  "stocks": [
+    {"stock": "PETR4", "name": "PETROBRAS PN", "close": 37.85, "change": 1.25, "volume": 41250000, "market_cap": 492000000000, "logo": "https://icons.brapi.dev/icons/PETR4.svg", "sector": "Energy Minerals", "subsector": "Integrated Oil", "type": "stock", "subType": null},
+    {"stock": "VALE3", "name": "VALE ON", "close": 61.2, "change": -0.8, "volume": 22100000, "market_cap": 275000000000, "logo": "https://icons.brapi.dev/icons/VALE3.svg", "sector": "Non-Energy Minerals", "subsector": null, "type": "stock", "subType": null}
+  ],
+  "currentPage": 1,
+  "totalPages": 1
+}
