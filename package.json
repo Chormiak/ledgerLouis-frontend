@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "dev:investimentos": "npm --prefix apps/investimentos/frontend run dev",
+    "dev:all": "run-p dev dev:investimentos",
+    "build": "run-p type-check \"build-only {@}\" -- && npm run build:investimentos",
     "preview": "vite preview",
     "build-only": "vite build",
+    "build:investimentos": "npm --prefix apps/investimentos/frontend run build",
     "type-check": "vue-tsc --build",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",

@@ -1,3 +1,4 @@
+import { apiFetch } from '../api'
 // Cliente do chat: POST /api/chat devolve eventos SSE (session, text, tool, warning, done).
 export type ChatEvent =
   | { type: 'session'; session_id: string }
@@ -13,15 +14,14 @@ export async function streamChat(
   onEvent: (e: ChatEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const r = await fetch('/api/chat', {
+  const r = await apiFetch('chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, session_id: sessionId }),
     signal,
   })
   if (!r.ok || !r.body) {
     const data = await r.json().catch(() => ({}))
-    throw new Error(data.error ?? `O chat respondeu ${r.status}`)
+    throw new Error(data.detail ?? data.message ?? `O chat respondeu ${r.status}`)
   }
   const reader = r.body.pipeThrough(new TextDecoderStream()).getReader()
   let buffer = ''

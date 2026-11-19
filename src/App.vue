@@ -32,6 +32,12 @@
           <span class="item-label">Relatórios</span>
         </button>
 
+        <!-- app à parte (apps/investimentos), servido em /investimentos/ com o mesmo login -->
+        <a class="sidebar-item" href="/investimentos/" title="Investimentos">
+          <TrendingUp :size="20" />
+          <span class="item-label">Investimentos</span>
+        </a>
+
         <button
           class="sidebar-item"
           :class="{ active: route.path === '/settings' }"
@@ -77,6 +83,7 @@ import {
   Settings,
   ArrowUp,
   ArrowDown,
+  TrendingUp,
 } from 'lucide-vue-next';
 import { useCompanyStore } from './stores/CompanyStore';
 import { useUserStore } from './stores/userStore';
@@ -228,6 +235,7 @@ body, html {
     padding: 11px;
     border-radius: 10px;
     border: none;
+    text-decoration: none;
     background: transparent;
     color: var(--color-text-secondary);
     font-family: var(--font-body);

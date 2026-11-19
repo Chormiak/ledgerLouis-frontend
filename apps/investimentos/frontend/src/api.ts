@@ -39,9 +39,25 @@ export interface MacroPoint {
   fetched_at: string
 }
 
+const API = `${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '')}/investments/`
+
+/** Chama o backend do LedgerLouis com o login do app principal (mesma origem, mesmo localStorage). */
+export async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const token = localStorage.getItem('token')
+  const r = await fetch(API + path, {
+    ...init,
+    headers: {
+      ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  })
+  if (r.status === 401) location.assign('/entrar') // sem login (ou expirado): volta para o Ledger entrar
+  return r
+}
+
 async function get<T>(path: string): Promise<T> {
-  const r = await fetch(`/api/${path}`)
-  if (!r.ok) throw new Error(`A API respondeu ${r.status} em /api/${path}`)
+  const r = await apiFetch(path)
+  if (!r.ok) throw new Error(`A API respondeu ${r.status} em /investments/${path}`)
   return r.json()
 }
 
@@ -125,7 +141,7 @@ export interface Portfolio {
 export type Decision = 'pendente' | 'aprovado' | 'recusado' | 'ajustado'
 
 export interface ProposalItem {
-  id: number
+  id: string
   ticker: string
   name: string
   sector: string
@@ -144,7 +160,7 @@ export interface ProposalItem {
 }
 
 export interface ProposalHead {
-  id: number
+  id: string
   period: string
   created_at: string
   status: 'rascunho' | 'em_revisao' | 'concluida'
@@ -159,7 +175,7 @@ export interface Proposal extends ProposalHead {
 }
 
 export interface Alert {
-  id: number
+  id: string
   kind: 'queda_forte' | 'concentracao_ativo' | 'concentracao_setor' | 'fato_relevante'
   title: string
   ticker: string | null
@@ -191,14 +207,10 @@ export interface Scoreboard {
 }
 
 async function send<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const r = await fetch(`/api/${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
+  const r = await apiFetch(path, { method, body: body === undefined ? undefined : JSON.stringify(body) })
   if (!r.ok) {
     const data = await r.json().catch(() => ({}))
-    throw new Error(data.error ?? (data.errors ? `campos inválidos: ${data.errors.join(', ')}` : `A API respondeu ${r.status}`))
+    throw new Error(data.detail ?? data.message ?? `A API respondeu ${r.status}`)
   }
   return r.status === 204 ? (undefined as T) : r.json()
 }
@@ -210,11 +222,11 @@ export const saveHolding = (ticker: string, quantity: string, avg_price: string)
   send<Portfolio>('PUT', `holdings/${ticker}`, { quantity, avg_price: avg_price || null })
 export const deleteHolding = (ticker: string) => send<void>('DELETE', `holdings/${ticker}`)
 export const fetchProposals = () => get<ProposalHead[]>('proposals')
-export const fetchProposal = (id: string | number) => get<Proposal>(`proposals/${id}`)
-export const decide = (itemId: number, decision: Decision, adjusted_weight: number | null, comment: string) =>
+export const fetchProposal = (id: string) => get<Proposal>(`proposals/${id}`)
+export const decide = (itemId: string, decision: Decision, adjusted_weight: number | null, comment: string) =>
   send<ProposalItem>('POST', `proposal-items/${itemId}/decision`, { decision, adjusted_weight, comment })
 export const fetchAlerts = () => get<Alert[]>('alerts')
-export const markAlertSeen = (id: number) => send<void>('POST', `alerts/${id}/seen`)
+export const markAlertSeen = (id: string) => send<void>('POST', `alerts/${id}/seen`)
 export const fetchScoreboard = () => get<Scoreboard>('scoreboard')
 
 // ---- Página da ação ----
@@ -253,7 +265,7 @@ export const fetchAssetFull = (ticker: string) => get<AssetFull>(`assets/${ticke
 // ---- Claude no dashboard ----
 
 export interface PendingChange {
-  id: number
+  id: string
   kind: 'holding' | 'profile'
   payload: Record<string, unknown>
   reason: string
@@ -262,7 +274,7 @@ export interface PendingChange {
 }
 
 export interface ScreenCommand {
-  id: number
+  id: string
   action: 'navigate'
   payload: { path: string; reason: string }
 }
@@ -270,6 +282,6 @@ export interface ScreenCommand {
 export const fetchSparklines = () => get<Record<string, number[]>>('sparklines')
 export const fetchCategoryNews = (category: 'geopolitica' | 'ia_bolha') => get<NewsItem[]>(`news/${category}`)
 export const fetchPendingChanges = () => get<PendingChange[]>('pending-changes')
-export const decideChange = (id: number, verb: 'apply' | 'reject') => send<PendingChange>('POST', `pending-changes/${id}/${verb}`)
-export const fetchScreenCommands = (after?: number) =>
-  get<{ latest_id: number; commands: ScreenCommand[] }>(`screen-commands${after === undefined ? '' : `?after=${after}`}`)
+export const decideChange = (id: string, verb: 'apply' | 'reject') => send<PendingChange>('POST', `pending-changes/${id}/${verb}`)
+export const fetchScreenCommands = (after?: string) =>
+  get<{ latest_id: string; commands: ScreenCommand[] }>(`screen-commands${after === undefined ? '' : `?after=${after}`}`)

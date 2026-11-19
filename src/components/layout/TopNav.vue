@@ -5,6 +5,9 @@
     </router-link>
 
     <div class="nav-actions">
+      <a class="icon-button invest-link" href="/investimentos/" title="Investimentos" aria-label="Investimentos">
+        <TrendingUp :size="20" stroke-width="2.5" />
+      </a>
       <button class="icon-button" @click="goToInvitations" title="Convites">
         <Mail :size="20" stroke-width="2.5" />
         <span v-if="pendingInvitations > 0" class="badge">{{ pendingInvitations }}</span>
@@ -14,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { Mail } from 'lucide-vue-next';
+import { Mail, TrendingUp } from 'lucide-vue-next';
 import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
 import CompanyService from '@/services/companyService';
@@ -95,6 +98,13 @@ onMounted(() => {
 
 .icon-button:active {
   transform: scale(0.92);
+}
+
+/* no desktop o atalho já está na sidebar */
+@media (min-width: 1024px) {
+  .invest-link {
+    display: none;
+  }
 }
 
 .badge {

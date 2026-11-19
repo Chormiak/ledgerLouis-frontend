@@ -9,7 +9,7 @@ import { fetchScreenCommands } from '../api'
 export function useScreenCommands(intervalMs = 2500) {
   const router = useRouter()
   const notice = ref<{ path: string; reason: string } | null>(null)
-  let after: number | undefined
+  let after: string | undefined
   let timer: ReturnType<typeof setInterval> | undefined
   let hide: ReturnType<typeof setTimeout> | undefined
 

@@ -1,9 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import OverviewView from './views/OverviewView.vue'
 
 // Cada tela baixa só o próprio código; a visão geral vem junto por ser a primeira.
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     { path: '/', component: OverviewView, meta: { title: 'Visão geral' } },
     { path: '/grupos', component: () => import('./views/GroupsView.vue'), meta: { title: 'Setores e nichos' } },
@@ -11,7 +11,7 @@ export const router = createRouter({
     { path: '/grupos/:kind(sector|niche)/:slug', component: () => import('./views/GroupView.vue'), props: true },
     { path: '/acoes/:ticker', component: () => import('./views/AssetView.vue'), props: true },
     { path: '/carteira', component: () => import('./views/CarteiraView.vue'), meta: { title: 'Carteira' } },
-    { path: '/carteira/propostas/:id(\\d+)', component: () => import('./views/ProposalView.vue'), props: true, meta: { title: 'Proposta' } },
+    { path: '/carteira/propostas/:id', component: () => import('./views/ProposalView.vue'), props: true, meta: { title: 'Proposta' } },
     { path: '/alertas', component: () => import('./views/AlertsView.vue'), meta: { title: 'Alertas' } },
     { path: '/placar', component: () => import('./views/ScoreboardView.vue'), meta: { title: 'Placar' } },
   ],

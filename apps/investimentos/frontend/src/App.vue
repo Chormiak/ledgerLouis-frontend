@@ -46,6 +46,7 @@ const tape = computed(() =>
   <div class="min-h-screen">
     <header class="sticky top-0 z-20 border-b border-rule bg-ink/95 backdrop-blur">
       <div class="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 lg:flex-nowrap">
+        <a href="/" class="text-sm text-muted hover:text-paper" title="Voltar para o Ledger">← Ledger</a>
         <RouterLink to="/" class="font-display text-2xl font-bold tracking-tight">Ledger<span class="text-accent">Louis</span></RouterLink>
 
         <nav aria-label="Principal" class="flex gap-1 overflow-x-auto text-sm">

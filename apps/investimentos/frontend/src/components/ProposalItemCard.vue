@@ -5,7 +5,7 @@ import { decide, type Decision, type ProposalItem } from '../api'
 import { formatBRL, formatFraction } from '../lib/format'
 import KindTag from './KindTag.vue'
 
-const props = defineProps<{ item: ProposalItem; proposalId: number }>()
+const props = defineProps<{ item: ProposalItem; proposalId: string }>()
 const qc = useQueryClient()
 
 const comment = ref(props.item.comment)

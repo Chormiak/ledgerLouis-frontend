@@ -7,7 +7,7 @@ import { formatBRL } from '../lib/format'
 const qc = useQueryClient()
 const changes = useQuery({ queryKey: ['pending-changes'], queryFn: fetchPendingChanges, refetchInterval: 10_000 })
 const decide = useMutation({
-  mutationFn: ({ id, verb }: { id: number; verb: 'apply' | 'reject' }) => decideChange(id, verb),
+  mutationFn: ({ id, verb }: { id: string; verb: 'apply' | 'reject' }) => decideChange(id, verb),
   onSuccess: () => ['pending-changes', 'portfolio', 'profile', 'alerts'].forEach((k) => qc.invalidateQueries({ queryKey: [k] })),
 })
 
