@@ -1,10 +1,13 @@
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
 @import 'tailwindcss';
 
-/* Identidade LedgerLouis: livro-razão à noite. Tinta azul-marinho, pauta fina, latão como destaque. */
+/* Mesma identidade do Ledger: carvao esverdeado, pauta fina, esmeralda como unico destaque.
+   Os valores espelham src/assets/styles/tokens.css do app principal. */
 @theme {
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-display: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace;
 
   --color-ink: var(--ink);
   --color-panel: var(--panel);
@@ -20,35 +23,68 @@
 }
 
 :root {
-  /* Terminal escuro: fundo quase preto azulado, painéis um tom acima, ciano como único destaque. */
-  --ink: #05080d;
-  --panel: #0a1017;
-  --raise: #0f1720;
-  --rule: #18222e;
-  --paper: #d9e2ec;
-  --muted: #708096;
-  --accent: #3ccfdc;
-  --up: #2fcf8e;
-  --down: #f2566c;
-  --ai: #a197ff; /* interpretação da IA */
-  --est: #5aa8ff; /* estimativa */
+  --ink: #0a0b0b; /* --color-bg */
+  --panel: #101211; /* --color-surface */
+  --raise: #151817; /* --color-surface-2 */
+  --rule: #1f2322; /* borda: branco a 7% sobre o painel (precisa ser hex: o treemap interpola) */
+  --paper: #edf2ef;
+  --muted: #9ba39f;
+  --accent: #34b585; /* esmeralda da marca */
+  --up: #34b585;
+  --down: #ee6b78;
+  --ai: #c9a96b; /* interpretacao da IA: areia, fora da familia verde/vermelho */
+  --est: #78bfe0; /* estimativa */
   color-scheme: dark;
 }
 
-
 body {
-  background: var(--ink);
+  min-height: 100vh;
   color: var(--paper);
   font-family: var(--font-sans);
+  font-feature-settings: 'ss01', 'cv11';
+  letter-spacing: -0.005em;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Iluminacao fixa do Ledger: foco esmeralda no topo e pauta quadriculada que se dissolve. */
+  background-color: var(--ink);
+  background-image:
+    radial-gradient(60% 50% at 78% -8%, rgba(52, 181, 133, 0.095), transparent 70%),
+    radial-gradient(45% 40% at 4% 108%, rgba(52, 181, 133, 0.045), transparent 70%);
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.03em;
+  text-wrap: balance;
 }
 
 .num {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+::selection {
+  background: rgba(52, 181, 133, 0.3);
 }
 
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -13,7 +13,7 @@ const props = defineProps<{ exposure: Record<string, number> }>()
 const css = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim()
 const entries = computed(() => Object.entries(props.exposure).sort((a, b) => b[1] - a[1]))
 // tons de uma só família (ciano) para não competir com alta/queda
-const palette = ['#3ccfdc', '#2aa6b2', '#1f8590', '#19666f', '#144d54', '#103b41', '#0d2e33']
+const palette = ['#34b585', '#2c9a72', '#247f5e', '#1d654b', '#174f3b', '#123c2e', '#0d2b21']
 
 const option = computed(() => ({
   animation: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,

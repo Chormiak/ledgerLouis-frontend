@@ -30,7 +30,7 @@ const priceMove = (i: ProposalItem) =>
 </script>
 
 <template>
-  <article class="rounded-xl border border-rule bg-raise p-4" :aria-labelledby="`item-${item.id}`">
+  <article class="rounded-[14px] border border-rule bg-raise p-4" :aria-labelledby="`item-${item.id}`">
     <header class="flex flex-wrap items-baseline justify-between gap-2">
       <h3 :id="`item-${item.id}`" class="text-lg">
         <span class="mr-2 rounded bg-ink px-2 py-0.5 text-sm text-accent">{{ ACTION[item.action] }}</span>

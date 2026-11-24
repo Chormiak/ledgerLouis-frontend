@@ -47,7 +47,12 @@ const tape = computed(() =>
     <header class="sticky top-0 z-20 border-b border-rule bg-ink/95 backdrop-blur">
       <div class="flex flex-wrap items-center gap-x-6 gap-y-3 px-4 py-3 lg:flex-nowrap">
         <a href="/" class="text-sm text-muted hover:text-paper" title="Voltar para o Ledger">← Ledger</a>
-        <RouterLink to="/" class="font-display text-2xl font-bold tracking-tight">Ledger<span class="text-accent">Louis</span></RouterLink>
+        <RouterLink to="/" class="flex items-center gap-2.5" aria-label="LedgerLouis, visão geral">
+          <span class="grid size-[30px] place-items-center rounded-[9px] bg-accent text-ink shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_6px_18px_-8px_rgba(52,181,133,0.55)]" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M5 17V7M10 17V11M15 17V4M20 17V9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></svg>
+          </span>
+          <span class="text-[1.05rem] font-semibold tracking-[-0.04em]">Ledger<span class="ml-0.5 font-normal text-muted">Louis</span></span>
+        </RouterLink>
 
         <nav aria-label="Principal" class="flex gap-1 overflow-x-auto text-sm">
           <RouterLink
@@ -94,17 +99,17 @@ const tape = computed(() =>
     </header>
 
     <div class="grid gap-4 p-4 lg:grid-cols-[15rem_minmax(0,1fr)] 2xl:grid-cols-[15rem_minmax(0,1fr)_24rem]">
-      <aside class="hidden rounded-xl border border-rule bg-panel p-2 lg:sticky lg:top-[4.5rem] lg:block lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto">
+      <aside class="hidden rounded-[14px] border border-rule bg-panel p-2 lg:sticky lg:top-[4.5rem] lg:block lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto">
         <Watchlist />
       </aside>
 
-      <main class="min-w-0 rounded-xl border border-rule bg-panel p-4 sm:p-6">
+      <main class="min-w-0 rounded-[14px] border border-rule bg-panel p-4 sm:p-6">
         <RouterView />
       </main>
 
       <!-- o painel do Claude fica fixo em telas largas; nas menores vira uma gaveta -->
       <aside
-        class="fixed inset-0 z-30 bg-panel 2xl:sticky 2xl:inset-auto 2xl:top-[4.5rem] 2xl:z-auto 2xl:block 2xl:h-[calc(100vh-5.5rem)] 2xl:rounded-xl 2xl:border 2xl:border-rule"
+        class="fixed inset-0 z-30 bg-panel 2xl:sticky 2xl:inset-auto 2xl:top-[4.5rem] 2xl:z-auto 2xl:block 2xl:h-[calc(100vh-5.5rem)] 2xl:rounded-[14px] 2xl:border 2xl:border-rule"
         :class="chatOpen ? 'block' : 'hidden'"
       >
         <ChatPanel>

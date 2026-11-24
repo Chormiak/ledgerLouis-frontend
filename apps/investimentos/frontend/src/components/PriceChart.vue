@@ -25,7 +25,7 @@ function draw() {
   const [up, down, muted, rule, accent] = ['--up', '--down', '--muted', '--rule', '--accent'].map(css)
   chart = createChart(el.value, {
     autoSize: true,
-    layout: { background: { color: 'transparent' }, textColor: muted, fontFamily: "'IBM Plex Mono', ui-monospace, monospace", attributionLogo: false },
+    layout: { background: { color: 'transparent' }, textColor: muted, fontFamily: "'Geist Mono Variable', ui-monospace, monospace", attributionLogo: false, panes: { separatorColor: rule, separatorHoverColor: rule } },
     grid: { vertLines: { color: rule }, horzLines: { color: rule } },
     rightPriceScale: { borderColor: rule },
     timeScale: { borderColor: rule },

@@ -54,7 +54,7 @@ const option = computed(() => {
     tooltip: {
       backgroundColor: css('--panel'),
       borderColor: css('--rule'),
-      textStyle: { color: css('--paper'), fontFamily: "'IBM Plex Sans', system-ui, sans-serif" },
+      textStyle: { color: css('--paper'), fontFamily: "'Geist Variable', system-ui, sans-serif" },
       formatter: (info: { data: { asset?: Asset; name: string } }) => {
         const a = info.data.asset
         if (!a) return info.data.name
@@ -75,7 +75,7 @@ const option = computed(() => {
           show: true,
           height: 22,
           color: css('--muted'),
-          fontFamily: "'IBM Plex Sans', system-ui, sans-serif",
+          fontFamily: "'Geist Variable', system-ui, sans-serif",
           fontSize: 12,
         },
         itemStyle: { borderColor: css('--ink'), borderWidth: 1, gapWidth: 1 },
@@ -85,7 +85,7 @@ const option = computed(() => {
         ],
         label: {
           color: css('--paper'),
-          fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
+          fontFamily: "'Geist Mono Variable', ui-monospace, monospace",
           fontSize: 12,
           lineHeight: 16,
           // nós de setor não têm ativo; só as folhas mostram ticker e variação
