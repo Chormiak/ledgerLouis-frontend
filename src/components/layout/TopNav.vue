@@ -1,114 +1,277 @@
-<template>
-  <header class="top-navbar">
-    <router-link to="/" class="logo-section">
-      <span class="logo-text">LEDGER</span>
-    </router-link>
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { Building2, ChevronRight, Mail, Search, TrendingUp } from 'lucide-vue-next';
+import CompanyService from '@/services/companyService';
+import { useCompanyStore } from '@/stores/CompanyStore';
+import { useUserStore } from '@/stores/userStore';
+import { useCommandPalette } from '@/composables/useCommandPalette';
+import BaseButton from '@/components/ui/BaseButton.vue';
+import AppLogo from './AppLogo.vue';
 
-    <div class="nav-actions">
-      <button class="icon-button" @click="goToInvitations" title="Convites">
-        <Mail :size="20" stroke-width="2.5" />
-        <span v-if="pendingInvitations > 0" class="badge">{{ pendingInvitations }}</span>
-      </button>
+const route = useRoute();
+const companyStore = useCompanyStore();
+const userStore = useUserStore();
+const palette = useCommandPalette();
+const service = new CompanyService();
+
+const authed = computed(() => !!userStore.accessToken);
+const pendingInvitations = ref(0);
+const pageTitle = computed(() => route.meta.title);
+
+watch(
+  authed,
+  async (isAuthed) => {
+    if (!isAuthed) {
+      pendingInvitations.value = 0;
+      return;
+    }
+    try {
+      pendingInvitations.value = (await service.listUserInvitations()).items.length;
+    } catch {
+      pendingInvitations.value = 0;
+    }
+  },
+  { immediate: true },
+);
+
+const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform);
+</script>
+
+<template>
+  <header class="topbar" :class="{ 'topbar--shell': authed }">
+    <RouterLink to="/" class="topbar-brand" aria-label="Ledger Louis, início" :class="{ 'is-rail-logo': authed }">
+      <AppLogo />
+    </RouterLink>
+
+    <!-- Sessao autenticada: contexto (empresa e pagina) + busca + convites -->
+    <template v-if="authed">
+      <nav class="crumbs" aria-label="Contexto atual">
+        <RouterLink
+          v-if="companyStore.company.hasCompany"
+          :to="{ name: 'company' }"
+          class="crumb crumb--company"
+          title="Trocar de empresa"
+        >
+          <Building2 :size="14" />
+          <span>{{ companyStore.company.name }}</span>
+        </RouterLink>
+        <template v-if="pageTitle && route.name !== 'home'">
+          <ChevronRight v-if="companyStore.company.hasCompany" :size="14" class="crumb-sep" />
+          <span class="crumb crumb--page" aria-current="page">{{ pageTitle }}</span>
+        </template>
+      </nav>
+
+      <div class="topbar-actions">
+        <button type="button" class="command-trigger" @click="palette.open()">
+          <Search :size="15" />
+          <span class="command-label">Buscar ou ir para</span>
+          <kbd>{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
+        </button>
+
+        <!-- app a parte (apps/investimentos), servido em /investimentos/ com o mesmo login; no desktop fica na sidebar -->
+        <a class="icon-button invest-link" href="/investimentos/" title="Investimentos" aria-label="Investimentos">
+          <TrendingUp :size="18" :stroke-width="1.75" />
+        </a>
+
+        <RouterLink :to="{ name: 'invitations' }" class="icon-button" title="Convites" aria-label="Convites">
+          <Mail :size="18" :stroke-width="1.75" />
+          <span v-if="pendingInvitations > 0" class="icon-badge">{{ pendingInvitations }}</span>
+        </RouterLink>
+      </div>
+    </template>
+
+    <!-- Visitante: so o essencial -->
+    <div v-else class="topbar-actions">
+      <BaseButton variant="ghost" size="sm" :to="{ name: 'entrar' }">Entrar</BaseButton>
+      <BaseButton size="sm" :to="{ name: 'cadastro' }">Criar conta</BaseButton>
     </div>
   </header>
 </template>
 
-<script setup lang="ts">
-import { Mail } from 'lucide-vue-next';
-import { useRouter } from 'vue-router';
-import { ref, onMounted } from 'vue';
-import CompanyService from '@/services/companyService';
-
-const router = useRouter();
-const pendingInvitations = ref(0);
-const service = new CompanyService();
-
-const loadPendingInvitations = async () => {
-  try {
-    const response = await service.listUserInvitations();
-    pendingInvitations.value = response.items.length;
-  } catch {
-    pendingInvitations.value = 0;
-  }
-};
-
-const goToInvitations = () => {
-  router.push({ name: 'invitations' });
-};
-
-onMounted(() => {
-  loadPendingInvitations();
-});
-</script>
-
 <style scoped>
-.top-navbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 52px;
-  background-color: var(--color-surface);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 18px;
-  box-sizing: border-box;
-  z-index: 1001;
-
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+@media (min-width: 1024px) {
+  .invest-link {
+    display: none;
+  }
 }
 
-.logo-section {
+.topbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: var(--topbar-height);
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@media (min-width: 1024px) {
+  .topbar {
+    padding: 0 var(--space-8);
+  }
+
+  /* No desktop autenticado o logo vive no trilho lateral. */
+  .topbar--shell {
+    left: var(--sidebar-width);
+  }
+
+  .topbar-brand.is-rail-logo {
+    display: none;
+  }
+}
+
+.topbar-brand {
   display: inline-flex;
   align-items: center;
-  text-decoration: none;
 }
 
-.logo-text {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 1px;
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  font-size: var(--text-sm);
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crumb--company {
+  max-width: 220px;
+  padding: 5px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  color: var(--color-text);
+  transition: background-color var(--duration-fast) ease;
+}
+
+.crumb--company span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crumb--company svg {
+  color: var(--color-primary);
+}
+
+.crumb--company:hover {
+  background: var(--color-surface-3);
+}
+
+.crumb-sep {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+
+.crumb--page {
+  color: var(--color-text-muted);
+}
+
+/* Em telas estreitas so a empresa cabe no contexto. */
+@media (max-width: 640px) {
+  .crumb--page,
+  .crumb-sep {
+    display: none;
+  }
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.command-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 8px 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  transition:
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.command-trigger:hover {
+  border-color: var(--color-primary-ring);
   color: var(--color-text);
 }
 
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.command-trigger kbd {
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-subtle);
+}
+
+@media (max-width: 760px) {
+  .command-label,
+  .command-trigger kbd {
+    display: none;
+  }
+
+  .command-trigger {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
 }
 
 .icon-button {
   position: relative;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 6px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.icon-button:hover {
+  background: var(--color-surface-3);
   color: var(--color-text);
-  transition: transform 0.2s ease;
 }
 
-.icon-button:active {
-  transform: scale(0.92);
-}
-
-.badge {
+.icon-badge {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 3px;
+  right: 3px;
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  border-radius: 999px;
-  background: var(--color-danger);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
   line-height: 16px;
   text-align: center;
 }

@@ -1,147 +1,155 @@
-<template>
-  <section class="how-it-works">
-    <div class="section-heading">
-      <p class="eyebrow">Como funciona</p>
-      <h2 class="title">Do cadastro ao primeiro relatório, em minutos</h2>
-    </div>
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useGsapScope } from '@/composables/useGsapScope';
 
-    <div class="path">
-      <div
-        v-for="(step, index) in steps"
-        :key="step.title"
-        class="stop"
-        :class="index % 2 === 0 ? 'stop--left' : 'stop--right'"
-      >
-        <span class="stop-mark" aria-hidden="true">{{ step.number }}</span>
-        <div class="stop-card">
-          <h3>{{ step.title }}</h3>
-          <p>{{ step.description }}</p>
-        </div>
+const steps = [
+  {
+    title: 'Cadastre',
+    description: 'Crie sua conta e monte a empresa em menos de um minuto, sem burocracia.',
+  },
+  {
+    title: 'Lance',
+    description: 'Registre o que entra e o que sai em poucos toques e deixe as despesas fixas no automático.',
+  },
+  {
+    title: 'Entenda',
+    description: 'Relatórios e gráficos claros mostram para onde o dinheiro vai e o que esperar do próximo mês.',
+  },
+];
+
+const root = ref<HTMLElement>();
+
+// A linha de progresso acompanha a leitura da lista; cada etapa acende ao chegar no centro da tela.
+useGsapScope(root, ({ gsap }) => {
+  gsap.fromTo(
+    '.timeline-fill',
+    { scaleY: 0 },
+    {
+      scaleY: 1,
+      ease: 'none',
+      scrollTrigger: { trigger: '.steps-wrap', start: 'top 60%', end: 'bottom 60%', scrub: true },
+    },
+  );
+
+  gsap.utils.toArray<HTMLElement>('.step').forEach((step) => {
+    gsap.fromTo(
+      step,
+      { opacity: 0.35 },
+      {
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: { trigger: step, start: 'top 75%', end: 'top 50%', scrub: true },
+      },
+    );
+  });
+});
+</script>
+
+<template>
+  <section ref="root" class="section how">
+    <div class="how-layout">
+      <header class="how-heading">
+        <h2>Do cadastro ao primeiro relatório, em minutos</h2>
+      </header>
+
+      <div class="steps-wrap">
+        <span class="timeline" aria-hidden="true"><span class="timeline-fill" /></span>
+        <ol class="steps">
+        <li v-for="step in steps" :key="step.title" class="step">
+          <span class="step-marker" aria-hidden="true" />
+          <div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+          </div>
+        </li>
+        </ol>
       </div>
     </div>
   </section>
 </template>
 
-<script setup lang="ts">
-const steps = [
-  {
-    number: '1',
-    title: 'Crie sua conta',
-    description: 'Cadastre-se de graça e monte sua empresa em menos de um minuto, sem burocracia.',
-  },
-  {
-    number: '2',
-    title: 'Registre o que entra e sai',
-    description: 'Lance suas movimentações em poucos toques. Chega de planilha perdida.',
-  },
-  {
-    number: '3',
-    title: 'Entenda para onde vai o dinheiro',
-    description: 'Relatórios e gráficos claros pra você decidir com mais confiança.',
-  },
-];
-</script>
-
 <style scoped>
-.how-it-works {
-  padding: 70px 25px 80px;
+.how-layout {
+  display: grid;
+  gap: var(--space-10);
 }
 
-.section-heading {
-  text-align: center;
-  max-width: 520px;
-  margin: 0 auto 56px;
+@media (min-width: 900px) {
+  .how-layout {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: var(--space-12);
+    align-items: start;
+  }
+
+  /* O titulo fica preso enquanto a lista passa. */
+  .how-heading {
+    position: sticky;
+    top: calc(var(--topbar-height) + var(--space-10));
+  }
 }
 
-.eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--color-success-dark);
-  margin-bottom: 10px;
+.how-heading h2 {
+  max-width: 14ch;
+  font-size: clamp(2rem, 4.4vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
 }
 
-.title {
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 3vw, 1.9rem);
-  font-weight: 700;
-  color: var(--color-text);
-  line-height: 1.3;
-}
-
-.path {
+.steps-wrap {
   position: relative;
-  max-width: 640px;
-  margin: 0 auto;
-  padding-left: 44px;
-  border-left: 2px dashed var(--color-border);
 }
 
-.stop {
-  position: relative;
-  padding-bottom: 48px;
-}
-
-.stop:last-child {
-  padding-bottom: 0;
-}
-
-.stop-mark {
-  position: absolute;
-  top: -2px;
-  left: -63px;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+.steps {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-success-gradient);
-  box-shadow: 0 0 0 5px var(--color-primary-glow);
-  color: white;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 800;
+  flex-direction: column;
+  gap: clamp(64px, 12vw, 140px);
+  padding-left: 56px;
 }
 
-.stop-card {
-  max-width: 420px;
+.timeline {
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 17px;
+  width: 2px;
+  background: var(--color-border-strong);
 }
 
-.stop--left .stop-card { transform: rotate(-0.3deg); }
-.stop--right .stop-card { transform: rotate(0.3deg); }
-
-.stop-card h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 8px;
+.timeline-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary);
+  box-shadow: 0 0 10px rgba(52, 181, 133, 0.55);
+  transform-origin: top;
 }
 
-.stop-card p {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--color-text-secondary);
+.step {
+  position: relative;
 }
 
-@media (min-width: 700px) {
-  .path {
-    padding-left: 56px;
-  }
-
-  .stop-mark {
-    left: -75px;
-  }
+.step-marker {
+  position: absolute;
+  left: -43px;
+  top: 14px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--color-primary);
+  border-radius: 50%;
+  background: var(--color-bg);
 }
 
-@media (min-width: 1100px) {
-  .how-it-works {
-    padding: 56px 40px 64px;
-  }
+.step h3 {
+  margin-bottom: var(--space-2);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
 
-  .path {
-    max-width: 680px;
-  }
+.step p {
+  max-width: 44ch;
+  line-height: 1.65;
+  color: var(--color-text-muted);
 }
 </style>

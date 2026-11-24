@@ -1,299 +1,429 @@
-<template>
-  <section class="testimonials-section">
-    <h2 class="section-label">
-      Empresas que já usam o <br />
-      <span class="brand-highlight">Ledger Louis</span>
-    </h2>
-
-    <div class="stack-container" @click="nextCard">
-      <TransitionGroup name="stack">
-        <div 
-          v-for="(company, index) in visibleCompanies" 
-          :key="company.name" 
-          class="company-card"
-          :class="getCardClass(index)"
-          :style="{ zIndex: 10 - index }"
-        >
-          <div class="card-content-wrapper">
-            <div class="card-header">
-              <div class="logo-box">
-                <img v-if="company.image" :src="company.image" :alt="company.name" class="company-logo" />
-                <component v-else :is="company.icon" :size="20" class="icon" />
-              </div>
-              <div class="header-text">
-                <h3>{{ company.name }}</h3>
-                <p class="niche">{{ company.niche }}</p>
-              </div>
-            </div>
-            
-            <div class="quote-content">
-              <Quote class="quote-icon" :size="14" />
-              <p class="testimonial-text">{{ company.quote }}</p>
-            </div>
-          </div>
-
-          <div class="card-footer" v-if="index === 0">
-            <div class="tap-indicator">
-              <span>Próximo</span>
-              <ChevronRight :size="14" />
-            </div>
-          </div>
-        </div>
-      </TransitionGroup>
-    </div>
-  </section>
-</template>
-
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { Coffee, Activity, Quote, ChevronRight, Laptop } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
+import { useGsapScope } from '@/composables/useGsapScope';
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next';
 import gitcoffeImg from '@/assets/img/Gitcoffeimg.png';
 import healthupImg from '@/assets/img/healthupimg.png';
 import aquaImg from '@/assets/img/AQUAimg.png';
 
-const companies = ref([
+const voices = [
+  {
+    name: 'AQUA',
+    niche: 'Dados hidrometeorológicos',
+    quote:
+      'A melhor ferramenta para controle de fluxo de caixa que já utilizamos. Ganhamos o Hackathon por causa dela.',
+    image: aquaImg,
+  },
   {
     name: 'GitCoffe',
     niche: 'Empresa de software',
-    quote: 'O Ledger Louis trouxe uma clareza financeira que nunca tivemos. Interface muito intuitiva e prática.',
-    icon: Coffee,
-    image: gitcoffeImg
+    quote:
+      'O Ledger Louis trouxe uma clareza financeira que nunca tivemos. Interface intuitiva e prática.',
+    image: gitcoffeImg,
   },
   {
     name: 'HealthUp',
-    niche: 'Saúde e Bem-estar',
-    quote: 'Gerenciar os custos fixos ficou muito mais simples. Um benefício real para o nosso dia a dia.',
-    icon: Activity,
-    image: healthupImg
+    niche: 'Saúde e bem-estar',
+    quote: 'Gerenciar os custos fixos ficou muito mais simples no nosso dia a dia.',
+    image: healthupImg,
   },
-  {
-    name: 'AQUA',
-    niche: 'dados hidrometeorológicos',
-    quote: 'A melhor ferramenta para controle de fluxo de caixa que já utilizamos nos últimos anos. Ganhamos o Hackton por causa dela',
-    icon: Laptop,
-    image: aquaImg
-  }
-]);
+];
 
-const activeIndex = ref(0);
-let timer: any = null;
+const track = ref<HTMLElement>();
+const canPrev = ref(false);
+const canNext = ref(true);
+// Fracao visivel da faixa e posicao do scroll: alimentam a barra de progresso.
+const thumb = ref({ width: 100, left: 0 });
+const active = ref(0);
+const dragging = ref(false);
+const root = ref<HTMLElement>();
+const stage = ref<HTMLElement>();
+// Em telas largas os cards entram um a um pela direita, andam com o scroll e saem pela esquerda,
+// soltos do container (so a borda da tela os corta).
+const scrubbed = ref(false);
+let scrubOffset = 0;
+let pinTimeline:
+  | { scrollTrigger?: { start: number; end: number }; duration: () => number }
+  | undefined;
 
-// const visibleCompanies = computed(() => {
-//   const list = [...companies.value];
-//   const rotated = [];
-//   for (let i = 0; i < list.length; i++) {
-//     rotated.push(list[(activeIndex.value + i) % list.length]);
-//   }
-//   return rotated;
-// });
+// Peso do trecho em que a faixa percorre os cards, na linha do tempo presa.
+const TRAVEL = 2.5;
 
-const visibleCompanies = computed(() => {
-  const list = [...companies.value];
-  const rotated = [];
-  for (let i = 0; i < list.length; i++) {
-    rotated.push(list[(activeIndex.value + i) % list.length]!);
-  }
-  return rotated;
+// ponytail: decide uma vez na montagem; se a janela cruzar 900px a faixa so volta ao modo nativo no reload.
+useGsapScope(root, ({ gsap }) => {
+  const el = track.value;
+  if (!el || !window.matchMedia('(min-width: 900px)').matches) return;
+  const cards = Array.from(el.children);
+  const offscreen = () => window.innerWidth;
+
+  // Entrada: cada card chega no seu tempo enquanto o palco sobe ate o centro da tela.
+  gsap.fromTo(
+    cards,
+    { x: offscreen },
+    {
+      x: 0,
+      ease: 'power3.out',
+      stagger: 0.25,
+      scrollTrigger: {
+        trigger: stage.value,
+        start: 'top 90%',
+        end: 'center center',
+        scrub: 1,
+        invalidateOnRefresh: true,
+      },
+    },
+  );
+
+  // Palco preso: a faixa corre ate o ultimo card e depois cada card sai, em sequencia.
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: stage.value,
+      start: 'center center',
+      end: () => `+=${window.innerHeight * 1.8}`,
+      pin: true,
+      scrub: 1,
+      invalidateOnRefresh: true,
+    },
+    defaults: { ease: 'none' },
+  });
+  tl.to(el, {
+    x: () => -maxScroll(el),
+    duration: TRAVEL,
+    onUpdate: () => {
+      scrubOffset = -Number(gsap.getProperty(el, 'x'));
+      sync();
+    },
+  });
+  tl.fromTo(
+    cards,
+    { x: 0 },
+    { x: () => -offscreen(), duration: 1, stagger: 0.2, ease: 'power2.in', immediateRender: false },
+  );
+
+  pinTimeline = tl;
+  scrubbed.value = true;
 });
 
-///
+// Medidas vem do layout (offsetLeft), que o transform da faixa nao altera.
+function stepOf(el: HTMLElement) {
+  const card = el.firstElementChild as HTMLElement | null;
+  return card ? card.offsetWidth + parseFloat(getComputedStyle(el).columnGap || '0') : 0;
+}
 
-const nextCard = () => {
-  activeIndex.value = (activeIndex.value + 1) % companies.value.length;
-  resetTimer();
-};
+function contentWidth(el: HTMLElement) {
+  const last = el.lastElementChild as HTMLElement | null;
+  return last ? last.offsetLeft + last.offsetWidth : 0;
+}
 
-const getCardClass = (index: number) => {
-  if (index === 0) return 'card-top';
-  if (index === 1) return 'card-middle';
-  return 'card-back';
-};
+const maxScroll = (el: HTMLElement) => Math.max(0, contentWidth(el) - el.clientWidth);
 
-const resetTimer = () => {
-  if (timer) clearInterval(timer);
-  timer = setInterval(nextCard, 5000);
-};
+function sync() {
+  const el = track.value;
+  if (!el) return;
+  const offset = scrubbed.value ? scrubOffset : el.scrollLeft;
+  const max = maxScroll(el);
+  canPrev.value = offset > 4;
+  canNext.value = offset < max - 4;
+  const width = Math.min((el.clientWidth / (contentWidth(el) || 1)) * 100, 100);
+  thumb.value = { width, left: max > 0 ? (offset / max) * (100 - width) : 0 };
+  // No fim da faixa o ultimo card nunca chega ao inicio, entao ele vale como ativo.
+  active.value = canNext.value ? Math.round(offset / (stepOf(el) || 1)) : voices.length - 1;
+}
 
-onMounted(() => resetTimer());
-onUnmounted(() => { if (timer) clearInterval(timer); });
+function go(direction: 1 | -1) {
+  const el = track.value;
+  if (!el) return;
+  const trigger = pinTimeline?.scrollTrigger;
+  if (scrubbed.value && pinTimeline && trigger) {
+    // A pagina e quem move a faixa: rola a pagina ate o ponto do card pedido.
+    const next = Math.min(Math.max(active.value + direction, 0), voices.length - 1);
+    const fraction = Math.min((next * stepOf(el)) / (maxScroll(el) || 1), 1);
+    const timeline = (fraction * TRAVEL) / pinTimeline.duration();
+    window.scrollTo({
+      top: trigger.start + timeline * (trigger.end - trigger.start),
+      behavior: 'smooth',
+    });
+    return;
+  }
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.scrollBy({ left: direction * stepOf(el), behavior: reduce ? 'auto' : 'smooth' });
+}
+
+// Arrastar com o mouse (toque ja rola nativamente). Sem snap durante o arraste; ao soltar ele reassenta.
+let startX = 0;
+let startScroll = 0;
+
+function dragStart(e: PointerEvent) {
+  if (scrubbed.value || e.pointerType !== 'mouse' || e.button !== 0 || !track.value) return;
+  startX = e.clientX;
+  startScroll = track.value.scrollLeft;
+  dragging.value = true;
+  track.value.setPointerCapture(e.pointerId);
+}
+
+function dragMove(e: PointerEvent) {
+  if (dragging.value && track.value) track.value.scrollLeft = startScroll - (e.clientX - startX);
+}
+
+function dragEnd() {
+  dragging.value = false;
+}
+
+onMounted(sync);
 </script>
 
+<template>
+  <section ref="root" class="section">
+    <div ref="stage">
+      <div class="head">
+        <header class="section-heading">
+          <h2>Empresas que já usam o <span class="gradient-text">Ledger Louis</span></h2>
+        </header>
+
+        <div class="controls">
+          <span class="count" aria-live="polite">{{ active + 1 }} / {{ voices.length }}</span>
+          <button
+            type="button"
+            class="arrow"
+            aria-label="Depoimento anterior"
+            :disabled="!canPrev"
+            @click="go(-1)"
+          >
+            <ChevronLeft :size="20" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            class="arrow"
+            aria-label="Próximo depoimento"
+            :disabled="!canNext"
+            @click="go(1)"
+          >
+            <ChevronRight :size="20" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <ul
+          ref="track"
+          class="track"
+          :class="{ 'track--dragging': dragging, 'track--scrubbed': scrubbed }"
+          :tabindex="scrubbed ? undefined : 0"
+          aria-label="Depoimentos de empresas"
+          @scroll.passive="sync"
+          @pointerdown="dragStart"
+          @pointermove="dragMove"
+          @pointerup="dragEnd"
+          @pointercancel="dragEnd"
+        >
+          <li
+            v-for="(item, i) in voices"
+            :key="item.name"
+            class="voice"
+            :class="{ 'voice--active': i === active }"
+          >
+            <figure>
+              <blockquote>{{ item.quote }}</blockquote>
+              <figcaption>
+                <img :src="item.image" :alt="`Logo ${item.name}`" loading="lazy" />
+                <div>
+                  <strong>{{ item.name }}</strong>
+                  <span>{{ item.niche }}</span>
+                </div>
+              </figcaption>
+            </figure>
+          </li>
+        </ul>
+
+        <div class="progress" aria-hidden="true">
+          <span :style="{ width: `${thumb.width}%`, left: `${thumb.left}%` }" />
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
 <style scoped>
-.testimonials-section {
-  padding: 10px 25px 50px 25px;
-  overflow: hidden;
-}
-
-.section-label {
-  text-align: center;
-  font-size: 12px; /* Reduzido */
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--color-text-secondary);
-  margin-bottom: 20px;
-}
-
-.brand-highlight {
-  font-size: 23px; /* Reduzido de 26px */
-  color: var(--color-success-dark);
-  text-transform: none;
-  display: block;
-  margin-top: 4px;
-}
-
-.stack-container {
-  position: relative;
-  height: 200px; /* Reduzido de 220px */
-  width: 100%;
-  max-width: 420px;
-  margin: 0 auto;
-  perspective: 1000px;
-  cursor: pointer;
-}
-
-@media (min-width: 1100px) {
-  .testimonials-section {
-    padding: 20px 25px 56px;
-  }
-
-  .stack-container {
-    max-width: 460px;
-  }
-}
-
-.company-card {
-  position: absolute;
-  width: 100%;
-  height: 175px; /* Reduzido de 190px */
-  background: var(--color-surface);
-  border-radius: 18px; /* Levemente mais arredondado proporcionalmente */
-  padding: 18px; /* Reduzido de 22px */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--color-border);
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-  box-sizing: border-box;
+.head {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: flex-end;
   justify-content: space-between;
-  backface-visibility: hidden;
+  gap: var(--space-6);
+  margin-bottom: var(--space-10);
 }
 
-/* --- Visibilidade e Escalonamento --- */
-.card-top {
-  transform: translateY(0) scale(1);
+.head .section-heading {
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.count {
+  margin-right: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast),
+    color var(--duration-fast),
+    opacity var(--duration-fast);
+}
+
+.arrow:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary-strong);
+}
+
+.arrow:focus-visible,
+.track:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Faixa com snap: o proximo card aparece pela metade e convida a rolar. */
+.track {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--radius-lg);
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+@media (hover: hover) {
+  .track:not(.track--scrubbed) {
+    cursor: grab;
+  }
+}
+
+/* Preso ao scroll da pagina: sem rolagem propria, snap nem recorte; so o ScrollTrigger move os cards. */
+.track--scrubbed {
+  overflow: visible;
+  scroll-snap-type: none;
+  border-radius: 0;
+}
+
+.track--scrubbed .voice {
+  will-change: transform;
+}
+
+.track--dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.voice {
+  flex: 0 0 min(88%, 560px);
+  scroll-snap-align: start;
+  opacity: 0.4;
+  transition: opacity var(--duration-slow) var(--ease-out);
+}
+
+.voice--active {
   opacity: 1;
 }
 
-.card-middle {
-  transform: translateY(15px) scale(0.95);
-  opacity: 0.6;
+.voice img {
+  -webkit-user-drag: none;
 }
 
-.card-back {
-  transform: translateY(30px) scale(0.90);
-  opacity: 0.3;
-}
-
-.card-header {
+figure {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.logo-box {
-  width: 36px; /* Reduzido de 42px */
-  height: 36px;
-  background-color: var(--color-surface-soft);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-success-alt);
-  overflow: hidden;
-}
-
-.company-logo {
-  width: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-10);
   height: 100%;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.icon {
-  width: 100%;
-  height: 100%;
-}
-
-.header-text h3 {
-  font-size: 16px; /* Reduzido de 18px */
-  font-weight: 700;
+  min-height: 300px;
   margin: 0;
+  padding: clamp(var(--space-6), 3.5vw, var(--space-10));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-panel);
+}
+
+blockquote {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
   color: var(--color-text);
 }
 
-.niche {
-  font-size: 11px; /* Reduzido de 12px */
-  color: var(--color-text-tertiary);
-  margin: 0;
-}
-
-.quote-content {
-  position: relative;
-  padding-left: 18px;
-}
-
-.quote-icon {
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: var(--color-success-alt);
-  opacity: 0.2;
-}
-
-.testimonial-text {
-  font-size: 14px; /* Reduzido de 15px */
-  line-height: 1.4;
-  color: var(--color-text-secondary);
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.card-footer {
-  margin-top: 8px;
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid var(--color-surface-soft);
-  padding-top: 8px;
-}
-
-.tap-indicator {
+figcaption {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-success-alt);
-  text-transform: uppercase;
+  gap: var(--space-3);
 }
 
-/* --- Animação de Saída (Fix para o bug visual) --- */
-.stack-leave-active {
+figcaption img {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+figcaption div {
+  display: flex;
+  flex-direction: column;
+}
+
+figcaption strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+figcaption span {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Mesma linguagem da linha do tempo de "Como funciona": trilho fino com preenchimento esmeralda. */
+.progress {
+  position: relative;
+  height: 2px;
+  margin-top: var(--space-6);
+  background: var(--color-border-strong);
+}
+
+.progress span {
   position: absolute;
-  z-index: 100 !important; /* Garante que o card saindo fique por cima de tudo */
-}
-
-.stack-leave-to {
-  transform: translateX(-110%) rotate(-10deg) scale(0.9);
-  opacity: 0;
-}
-
-/* Evita que os cards que estão entrando ou se movendo "pulem" */
-.stack-move {
-  transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  top: 0;
+  height: 100%;
+  background: var(--color-primary);
+  transition: left var(--duration-fast) linear;
 }
 </style>

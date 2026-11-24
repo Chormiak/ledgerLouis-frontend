@@ -1,0 +1,120 @@
+/* ==========================================================================
+   Design tokens - fonte unica de cor, tipografia, raio, sombra, movimento e
+   camadas. A identidade e escura por definicao (financial intelligence):
+   quase-preto esverdeado, superficies de carvao, esmeralda como unico acento.
+
+   Regra de forma: botoes e chips sao pilulas, cards 14px, inputs 10px.
+   Componentes nunca usam hex direto: sempre um token daqui.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* Tipografia */
+  --font-display: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  --font-body: 'Geist Variable', 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: clamp(1.75rem, 3.2vw, 2.4rem);
+  --text-3xl: clamp(2.5rem, 5vw, 4.5rem);
+  --text-figure: clamp(2.5rem, 5.4vw, 4.5rem);
+
+  /* Raios */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* Espacamento */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Layout */
+  --topbar-height: 60px;
+  --sidebar-width: 76px;
+  --bottom-nav-height: 84px;
+  --shell-width: 1240px;
+
+  /* Movimento */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration: 240ms;
+  --duration-slow: 600ms;
+
+  /* Camadas (unica escala de z-index do projeto) */
+  --z-sticky: 900;
+  --z-nav: 1000;
+  --z-overlay: 1500;
+  --z-modal: 2000;
+  --z-toast: 3000;
+  --z-grain: 4000;
+
+  /* Superficies */
+  --color-bg: #0a0b0b;
+  --color-surface: #101211;
+  --color-surface-2: #151817;
+  --color-surface-3: #1c201e;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.15);
+  --color-overlay: rgba(0, 0, 0, 0.72);
+
+  /* Texto */
+  --color-text: #edf2ef;
+  --color-text-muted: #9ba39f;
+  --color-text-subtle: #6c746f;
+
+  /* Acento: esmeralda. Unico. */
+  --color-primary: #34b585;
+  --color-primary-hover: #4ac598;
+  --color-primary-strong: #6fd1a8;
+  --color-primary-soft: rgba(52, 181, 133, 0.1);
+  --color-primary-ring: rgba(52, 181, 133, 0.3);
+  --color-on-primary: #04120b;
+
+  /* Semantica negativa */
+  --color-danger: #ee6b78;
+  --color-danger-hover: #f28b95;
+  --color-danger-strong: #f4a0a8;
+  --color-danger-soft: rgba(238, 107, 120, 0.1);
+  --color-danger-ring: rgba(238, 107, 120, 0.3);
+
+  --color-warning: #e8b24a;
+  --color-warning-strong: #f0c46d;
+  --color-warning-soft: rgba(232, 178, 74, 0.1);
+
+  --color-info: #78bfe0;
+  --color-info-soft: rgba(120, 191, 224, 0.1);
+
+  --gradient-primary: linear-gradient(135deg, #2fa878 0%, #4cc193 100%);
+  --gradient-danger: linear-gradient(135deg, #e5606d 0%, #f28b95 100%);
+  /* Fundo de painel de destaque: carvao com um sopro de esmeralda no canto. */
+  --gradient-panel: radial-gradient(120% 120% at 0% 0%, rgba(52, 181, 133, 0.045) 0%, transparent 55%),
+    linear-gradient(180deg, var(--color-surface-2), var(--color-surface));
+  --gradient-ink: var(--gradient-panel);
+
+  /* Sombras: neutras e curtas. Nenhum halo colorido por padrao. */
+  --shadow-xs: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 12px 28px -14px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 28px 56px -18px rgba(0, 0, 0, 0.8);
+  --shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.22) inset, 0 6px 18px -8px rgba(52, 181, 133, 0.55);
+  --shadow-danger: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 6px 18px -8px rgba(238, 107, 120, 0.5);
+  /* Brilho moderado: serve a destaques (saldo, CTA), nunca a todo elemento. */
+  --glow-primary: 0 0 44px -16px rgba(52, 181, 133, 0.32);
+}

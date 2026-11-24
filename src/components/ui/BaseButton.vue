@@ -1,0 +1,211 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import type { RouteLocationRaw } from 'vue-router';
+
+const props = withDefaults(
+  defineProps<{
+    /** Cor semântica. `secondary` = contorno neutro, `ghost` = sem fundo. */
+    variant?: 'primary' | 'danger' | 'secondary' | 'ghost';
+    size?: 'sm' | 'md' | 'lg';
+    type?: 'button' | 'submit' | 'reset';
+    /** Quando informado, renderiza um RouterLink com a mesma aparência. */
+    to?: RouteLocationRaw;
+    loading?: boolean;
+    disabled?: boolean;
+    /** Botão quadrado só com ícone — exige `aria-label` ou `title`. */
+    iconOnly?: boolean;
+    /** Ocupa toda a largura disponível. */
+    block?: boolean;
+  }>(),
+  {
+    variant: 'primary',
+    size: 'md',
+    type: 'button',
+    to: undefined,
+    loading: false,
+    disabled: false,
+    iconOnly: false,
+    block: false,
+  },
+);
+
+const classes = computed(() => [
+  'btn',
+  `btn--${props.variant}`,
+  `btn--${props.size}`,
+  { 'btn--icon': props.iconOnly, 'btn--block': props.block, 'is-loading': props.loading },
+]);
+</script>
+
+<template>
+  <RouterLink v-if="to" :to="to" :class="classes">
+    <slot />
+  </RouterLink>
+
+  <button v-else :type="type" :class="classes" :disabled="disabled || loading" :aria-busy="loading || undefined">
+    <span v-if="loading" class="btn-spinner" aria-hidden="true" />
+    <span class="btn-content"><slot /></span>
+  </button>
+</template>
+
+<style scoped>
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform var(--duration-fast) ease,
+    box-shadow var(--duration) ease,
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+}
+
+.btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Variantes */
+.btn--primary {
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.btn--primary {
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Varredura de luz: cruza o botao uma vez ao entrar o cursor. */
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+
+.btn--primary:hover:not(:disabled)::after {
+  transform: translateX(120%);
+  transition: transform 700ms var(--ease-out);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #38b583 0%, #56c99b 100%);
+  transform: translateY(-1px);
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #1d0309;
+  box-shadow: var(--shadow-danger);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+  transform: translateY(-1px);
+}
+
+.btn--secondary {
+  background: transparent;
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-primary-ring);
+  background: var(--color-primary-soft);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--color-surface-3);
+  color: var(--color-text);
+}
+
+/* Tamanhos */
+.btn--sm {
+  min-height: 36px;
+  padding: 0 14px;
+  gap: 6px;
+  font-size: var(--text-sm);
+}
+
+.btn--lg {
+  min-height: 52px;
+  padding: 0 28px;
+  font-size: var(--text-md);
+}
+
+.btn--icon {
+  padding: 0;
+  width: 44px;
+}
+
+.btn--icon.btn--sm {
+  width: 36px;
+}
+
+.btn--icon.btn--lg {
+  width: 52px;
+}
+
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* Loading: mantém a largura do botão e sobrepõe o spinner. */
+.is-loading .btn-content {
+  visibility: hidden;
+}
+
+.btn-spinner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+</style>

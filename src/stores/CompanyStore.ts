@@ -37,9 +37,7 @@ export const useCompanyStore = defineStore('company', () => {
     }
   };
 
-  const setCompanyData = (companyData: Partial<typeof company>) => {
-    Object.assign(company, companyData);
-    // Persistir em localStorage
+  const saveToStorage = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(company));
     } catch (error) {
@@ -47,15 +45,15 @@ export const useCompanyStore = defineStore('company', () => {
     }
   };
 
+  const setCompanyData = (companyData: Partial<typeof company>) => {
+    Object.assign(company, companyData);
+    saveToStorage();
+  };
+
   const addMember = (member: string) => {
     if (member && !company.members.includes(member)) {
       company.members.push(member);
-      // Persistir em localStorage
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(company));
-      } catch (error) {
-        console.error('Erro ao salvar dados da empresa:', error);
-      }
+      saveToStorage();
     }
   };
 
@@ -109,6 +107,10 @@ export const useCompanyStore = defineStore('company', () => {
       hasCompany: true,
     });
   };
+
+  // Restaura a empresa salva já na criação da store, para que o guard do
+  // router (requiresCompany) funcione desde a primeira navegação.
+  loadCompanyData();
 
   return {
     company,

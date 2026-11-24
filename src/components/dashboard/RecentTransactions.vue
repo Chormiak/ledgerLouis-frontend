@@ -1,120 +1,155 @@
-<template>
-  <section class="transactions-card">
-    <header class="transactions-header">
-      <div>
-        <p class="chart-kicker">Últimas movimentações</p>
-        <h2>Atividade recente</h2>
-      </div>
+<script setup lang="ts">
+import { computed } from 'vue';
+import { ArrowRight } from 'lucide-vue-next';
+import BaseButton from '@/components/ui/BaseButton.vue';
+import { useTransactionStore } from '@/stores/transactionStore';
+import { useTagStore } from '@/stores/tagStore';
+import { colorForTag } from '@/utils/tagColor';
+import { formatShortDate, formatSignedAmount } from '@/utils/format';
+import type { TransactionDto } from '@/services/transactionService';
 
-      <button class="transactions-action" type="button" @click="router.push({ name: 'transactions' })">Ver todas</button>
+const props = defineProps<{ transactions?: TransactionDto[] }>();
+
+const transactionStore = useTransactionStore();
+const tagStore = useTagStore();
+
+const recent = computed(() => (props.transactions ?? transactionStore.transactions).slice(0, 6));
+</script>
+
+<template>
+  <section class="card recent" aria-labelledby="recent-title">
+    <header class="recent-head">
+      <h2 id="recent-title" class="card-title">Últimos lançamentos</h2>
+      <BaseButton variant="ghost" size="sm" :to="{ name: 'transactions' }">
+        Ver todos
+        <ArrowRight :size="15" />
+      </BaseButton>
     </header>
 
-    <ul class="transactions-list">
-      <TransactionItem
-        v-for="transaction in recentTransactions"
-        :key="transaction.id"
-        :title="transaction.description"
-        :subtitle="transaction.entryType === 'credit' ? 'Entrada' : 'Saída'"
-        :amount="formattedAmount(transaction)"
-        :date="formattedDate(transaction.date)"
-        :kind="transaction.entryType === 'credit' ? 'income' : 'expense'"
-      />
-    </ul>
+    <p v-if="recent.length === 0" class="empty-state">Nenhum lançamento registrado ainda.</p>
+
+    <table v-else class="ledger">
+      <thead class="sr-only">
+        <tr>
+          <th scope="col">Data</th>
+          <th scope="col">Descrição</th>
+          <th scope="col">Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="transaction in recent" :key="transaction.id">
+          <td class="date">{{ formatShortDate(transaction.date) }}</td>
+          <th scope="row" class="what">
+            <div class="what-inner">
+            <span class="what-text">{{ transaction.description }}</span>
+            <span class="what-date">{{ formatShortDate(transaction.date) }}</span>
+            <span v-if="tagStore.tagsForTransaction(transaction.id).length" class="what-tags">
+              <span
+                v-for="tag in tagStore.tagsForTransaction(transaction.id)"
+                :key="tag.id"
+                class="what-tag"
+                :style="{ '--tag-color': colorForTag(tag.id) }"
+              >
+                {{ tag.name }}
+              </span>
+            </span>
+            </div>
+          </th>
+          <td class="amount figure" :class="transaction.entryType === 'credit' ? 'text-income' : 'text-expense'">
+            {{ formatSignedAmount(transaction.amount, transaction.entryType) }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
-import TransactionItem from '@/components/dashboard/TransactionItem.vue';
-import { useTransactionStore } from '@/stores/transactionStore';
-import type { TransactionDto } from '@/services/transactionService';
-
-const router = useRouter();
-
-const props = defineProps<{
-  transactions?: TransactionDto[];
-}>();
-
-const transactionStore = useTransactionStore();
-
-const recentTransactions = computed(() => {
-  const source = props.transactions ?? transactionStore.transactions;
-  return source.slice(0, 5);
-});
-
-const formattedAmount = (transaction: { amount: number; entryType: string }) => {
-  const value = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(transaction.amount);
-  
-  return transaction.entryType === 'credit' ? `+ ${value}` : `- ${value}`;
-};
-
-const formattedDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) {
-    return `Hoje, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-  } else if (diffDays === 1) {
-    return `Ontem, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-  } else {
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-  }
-};
-</script>
-
 <style scoped>
-.transactions-card {
-  padding: 18px;
-  border-radius: 28px;
-  border: 1px solid var(--color-border);
-  background: rgba(var(--color-surface-rgb), 0.96);
-  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.06);
-}
-
-.transactions-header {
+.recent {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.recent-head {
+  display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
-.chart-kicker {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 6px;
+.ledger {
+  width: 100%;
 }
 
-h2 {
-  color: var(--color-text);
-  font-size: 20px;
-  font-weight: 800;
+.ledger td,
+.ledger th {
+  padding: var(--space-3) var(--space-2);
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: middle;
 }
 
-.transactions-action {
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface-soft);
-  color: var(--color-text);
-  min-height: 40px;
-  padding: 0 14px;
-  font-weight: 700;
+.date {
+  width: 7ch;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: capitalize;
+  white-space: nowrap;
+  color: var(--color-text-subtle);
 }
 
-.transactions-list {
-  display: grid;
+.what {
+  font-weight: 500;
 }
 
-@media (min-width: 768px) {
-  .transactions-card {
-    padding: 24px;
+.what-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px var(--space-3);
+}
+
+.what-date {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-subtle);
+}
+
+@media (max-width: 559px) {
+  .date {
+    display: none;
   }
+
+  .what-date {
+    display: inline;
+  }
+}
+
+.what-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.what-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.what-tag {
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--tag-color) 12%, transparent);
+  color: color-mix(in srgb, var(--tag-color) 60%, white);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.amount {
+  text-align: right !important;
+  white-space: nowrap;
+  font-weight: 500;
 }
 </style>

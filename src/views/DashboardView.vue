@@ -1,201 +1,61 @@
-<template>
-  <main class="dashboard-page">
-    <div class="dashboard-shell">
-      <DashboardHeader @export="handleExport" />
-
-      <TagFilterChips />
-
-      <section class="metrics-grid" aria-label="Resumo financeiro">
-        <DashboardCard
-          title="Saldo total"
-          :value="formattedAccountValue"
-          description="Saldo disponível"
-          :trend-value="balanceTrend"
-          trend-label="vs mês anterior"
-          :tone="accountValue >= 0 ? 'positive' : 'negative'"
-        >
-          <template #icon>
-            <div class="card-icon" :class="accountValue >= 0 ? 'card-icon--positive' : 'card-icon--negative'">
-              <WalletMinimal :size="20" />
-            </div>
-          </template>
-
-          <template #sparkline>
-            <DashboardSparkline :variant="accountValue >= 0 ? 'success' : 'danger'" />
-          </template>
-        </DashboardCard>
-
-        <DashboardCard
-          title="Entradas do mês"
-          :value="formattedIncome"
-          :description="entriesDescription"
-          trend-value="+ 8,3%"
-          trend-label="vs mês anterior"
-          tone="positive"
-        >
-          <template #icon>
-            <div class="card-icon card-icon--positive">
-              <ArrowDownToLine :size="20" />
-            </div>
-          </template>
-
-          <template #sparkline>
-            <DashboardSparkline variant="success" />
-          </template>
-        </DashboardCard>
-
-        <DashboardCard
-          title="Saídas do mês"
-          :value="formattedExpense"
-          :description="exitsDescription"
-          trend-value="+ 3,7%"
-          trend-label="vs mês anterior"
-          tone="negative"
-        >
-          <template #icon>
-            <div class="card-icon card-icon--negative">
-              <ArrowUpFromLine :size="20" />
-            </div>
-          </template>
-
-          <template #sparkline>
-            <DashboardSparkline variant="danger" />
-          </template>
-        </DashboardCard>
-
-        <DashboardCard
-          title="Transações"
-          :value="transactionCount.toString()"
-          :description="countDescription"
-          trend-value="+ 5,2%"
-          trend-label="vs mês anterior"
-          tone="neutral"
-        >
-          <template #icon>
-            <div class="card-icon card-icon--neutral">
-              <ChartNoAxesCombined :size="20" />
-            </div>
-          </template>
-
-          <template #sparkline>
-            <DashboardSparkline variant="success" />
-          </template>
-        </DashboardCard>
-      </section>
-
-      <section class="charts-grid" aria-label="Gráficos financeiros">
-        <RevenueChart :transactions="filteredTransactions" />
-        <TagsDistributionCard :transactions="filteredTransactions" />
-      </section>
-
-      <section class="insights-grid" aria-label="Estatísticas de gastos">
-        <ExpenseInsightsCard />
-      </section>
-
-      <RecentTransactions :transactions="filteredTransactions" />
-    </div>
-  </main>
-</template>
-
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { ArrowDownToLine, ArrowUpFromLine, ChartNoAxesCombined, WalletMinimal } from 'lucide-vue-next';
-
+import { computed, onMounted, ref } from 'vue';
+import { ArrowDownToLine, ArrowUpFromLine, Plus, ReceiptText } from 'lucide-vue-next';
+import PageHeader from '@/components/ui/PageHeader.vue';
+import BaseButton from '@/components/ui/BaseButton.vue';
+import ExportMenu from '@/components/ui/ExportMenu.vue';
+import BalanceHero from '@/components/dashboard/BalanceHero.vue';
 import DashboardCard from '@/components/dashboard/DashboardCard.vue';
-import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
-import DashboardSparkline from '@/components/dashboard/DashboardSparkline.vue';
 import RecentTransactions from '@/components/dashboard/RecentTransactions.vue';
-import RevenueChart from '@/components/dashboard/RevenueChart.vue';
+import CashflowChart from '@/components/dashboard/CashflowChart.vue';
 import TagFilterChips from '@/components/dashboard/TagFilterChips.vue';
-import TagsDistributionCard from '@/components/dashboard/TagsDistributionCard.vue';
-import ExpenseInsightsCard from '@/components/dashboard/ExpenseInsightsCard.vue';
+import TagRanking from '@/components/dashboard/TagRanking.vue';
+import SpendingOutlook from '@/components/dashboard/SpendingOutlook.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useTagStore } from '@/stores/tagStore';
 import { exportTransactionsCsv, exportTransactionsPdf } from '@/utils/exportTransactions';
+import { useGsapScope } from '@/composables/useGsapScope';
+import { buildMonthlySeries } from '@/utils/monthlySeries';
+import { formatCurrency } from '@/utils/format';
+
+const SPARKLINE_MONTHS = 6;
 
 const transactionStore = useTransactionStore();
 const companyStore = useCompanyStore();
 const tagStore = useTagStore();
 
 onMounted(async () => {
-  if (companyStore.company.hasCompany) {
-    await transactionStore.fetchTransactions();
-    await transactionStore.fetchAccountValue();
-  }
+  await Promise.all([transactionStore.fetchTransactions(), transactionStore.fetchAccountValue()]);
 });
 
-const accountValue = computed(() => transactionStore.accountValue);
-
-const activeTagName = computed(
-  () => tagStore.tags.find((tag) => tag.id === tagStore.activeTagId)?.name,
-);
+const activeTagName = computed(() => tagStore.tags.find((tag) => tag.id === tagStore.activeTagId)?.name);
 
 const filteredTransactions = computed(() => {
   const activeTagId = tagStore.activeTagId;
   if (!activeTagId) return transactionStore.transactions;
-
-  return transactionStore.transactions.filter((transaction) =>
-    tagStore.transactionHasTag(transaction.id, activeTagId),
-  );
+  return transactionStore.transactions.filter((t) => tagStore.transactionHasTag(t.id, activeTagId));
 });
 
-const formattedAccountValue = computed(() => {
-  const value = accountValue.value;
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
+const monthly = computed(() => buildMonthlySeries(filteredTransactions.value, SPARKLINE_MONTHS));
+
+const current = computed(() => monthly.value[monthly.value.length - 1]!);
+const previous = computed(() => monthly.value[monthly.value.length - 2]!);
+
+const percentChange = (now: number, before: number) => (before === 0 ? null : ((now - before) / before) * 100);
+
+// O backend devolve o saldo como texto decimal ("142344.00").
+const accountValue = computed(() => Number(transactionStore.accountValue) || 0);
+
+const monthsNet = computed(() => monthly.value.map((m) => ({ label: m.label, net: m.net })));
+
+// Entrada em cascata dos blocos: o olhar desce do saldo para o detalhe.
+const root = ref<HTMLElement>();
+useGsapScope(root, ({ gsap }) => {
+  gsap.from('.stage', { opacity: 0, y: 8, duration: 0.4, stagger: 0.04, ease: 'power2.out', clearProps: 'all' });
 });
 
-const balanceTrend = computed(() => {
-  const value = accountValue.value;
-  if (value > 0) return '+ 12,5%';
-  if (value < 0) return '- 5,2%';
-  return '0%';
-});
-
-const income = computed(() => {
-  return filteredTransactions.value
-    .filter(t => t.entryType === 'credit')
-    .reduce((sum, t) => sum + t.amount, 0);
-});
-
-const expense = computed(() => {
-  return filteredTransactions.value
-    .filter(t => t.entryType === 'debit')
-    .reduce((sum, t) => sum + t.amount, 0);
-});
-
-const formattedIncome = computed(() => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(income.value);
-});
-
-const formattedExpense = computed(() => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(expense.value);
-});
-
-const transactionCount = computed(() => {
-  return filteredTransactions.value.length;
-});
-
-const entriesDescription = computed(() =>
-  activeTagName.value ? `Total de entradas · Tag: ${activeTagName.value}` : 'Total de entradas',
-);
-
-const exitsDescription = computed(() =>
-  activeTagName.value ? `Total de saídas · Tag: ${activeTagName.value}` : 'Total de saídas',
-);
-
-const countDescription = computed(() =>
-  activeTagName.value ? `Total de transações · Tag: ${activeTagName.value}` : 'Total de transações',
-);
+const tagSuffix = computed(() => (activeTagName.value ? ` · ${activeTagName.value}` : ''));
 
 const handleExport = (format: 'csv' | 'pdf') => {
   if (format === 'csv') {
@@ -206,73 +66,124 @@ const handleExport = (format: 'csv' | 'pdf') => {
 };
 </script>
 
+<template>
+  <div ref="root" class="page flat-ui">
+    <div class="page-shell">
+      <PageHeader
+        class="stage"
+        title="Visão geral"
+        :description="`Saldo, entradas e saídas de ${companyStore.company.name || 'sua empresa'}.`"
+      >
+        <template #actions>
+          <ExportMenu @export="handleExport" />
+          <BaseButton :to="{ name: 'addExpense' }">
+            <Plus :size="18" />
+            Novo lançamento
+          </BaseButton>
+        </template>
+      </PageHeader>
+
+      <TagFilterChips class="stage" />
+
+      <section class="overview stage" aria-label="Resumo financeiro">
+        <BalanceHero
+          class="overview-balance"
+          :balance="accountValue"
+          :income="current.income"
+          :expense="current.expense"
+          :months="monthsNet"
+        />
+
+        <div class="overview-metrics card list-divided">
+          <DashboardCard
+            title="Entradas do mês"
+            :value="formatCurrency(current.income)"
+            :icon="ArrowDownToLine"
+            tone="positive"
+            :trend="percentChange(current.income, previous.income)"
+            :description="`vs mês anterior${tagSuffix}`"
+            :series="monthly.map((m) => m.income)"
+          />
+          <DashboardCard
+            title="Saídas do mês"
+            :value="formatCurrency(current.expense)"
+            :icon="ArrowUpFromLine"
+            tone="negative"
+            invert-trend
+            :trend="percentChange(current.expense, previous.expense)"
+            :description="`vs mês anterior${tagSuffix}`"
+            :series="monthly.map((m) => m.expense)"
+          />
+          <DashboardCard
+            title="Lançamentos do mês"
+            :value="current.count.toString()"
+            :icon="ReceiptText"
+            :trend="percentChange(current.count, previous.count)"
+            :description="`vs mês anterior${tagSuffix}`"
+            :series="monthly.map((m) => m.count)"
+          />
+        </div>
+      </section>
+
+      <section class="flow stage" aria-label="Fluxo de caixa e tags">
+        <CashflowChart class="flow-chart" :transactions="filteredTransactions" />
+        <TagRanking class="flow-ranking" :transactions="filteredTransactions" />
+      </section>
+
+      <SpendingOutlook class="stage" />
+
+      <RecentTransactions class="stage" :transactions="filteredTransactions" />
+    </div>
+  </div>
+</template>
+
 <style scoped>
-.dashboard-page {
-  min-height: calc(100vh - 165px);
-  padding: 30px 16px 32px;
-  background: var(--color-bg);
-}
-
-.dashboard-shell {
+/* Grade de 12 colunas: cada faixa soma 12, sem celulas vazias. */
+.overview,
+.flow {
   display: grid;
-  gap: 18px;
-  max-width: 1240px;
-  margin: 0 auto;
+  grid-auto-flow: dense;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4);
 }
 
-.metrics-grid,
-.charts-grid,
-.insights-grid {
-  display: grid;
-  gap: 16px;
+.overview > *,
+.flow > * {
+  grid-column: 1 / -1;
+  min-width: 0;
 }
 
-.card-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+/* Metricas empilhadas em um unico painel, divididas por filetes. */
+.overview-metrics {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0;
 }
 
-.card-icon--positive {
-  color: var(--color-success-dark);
-  background: rgba(29, 205, 108, 0.12);
+.overview-metrics > :deep(*) {
+  flex: 1;
 }
 
-.card-icon--negative {
-  color: var(--color-danger);
-  background: rgba(229, 33, 36, 0.12);
+.overview-metrics > :deep(* + *) {
+  border-top: 1px solid var(--color-border);
 }
 
-.card-icon--neutral {
-  color: var(--color-text-secondary);
-  background: rgba(107, 114, 128, 0.12);
-}
-
-@media (min-width: 640px) {
-  .dashboard-page {
-    padding-inline: 20px;
+@media (min-width: 1100px) {
+  .overview-balance {
+    grid-column: span 7;
   }
 
-  .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1024px) {
-  .dashboard-page {
-    padding: 28px 24px 40px;
+  .overview-metrics {
+    grid-column: span 5;
   }
 
-  .metrics-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .flow-chart {
+    grid-column: span 8;
   }
 
-  .charts-grid {
-    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.95fr);
-    align-items: stretch;
+  .flow-ranking {
+    grid-column: span 4;
   }
 }
 </style>

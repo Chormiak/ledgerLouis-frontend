@@ -12,13 +12,15 @@ export default defineConfig({
     vueDevTools(),
     VitePWA({
       registerType: 'autoUpdate',
+      // /investimentos/ é outro app (apps/investimentos): o service worker não pode responder com o index do Ledger
+      workbox: { navigateFallbackDenylist: [/^\/investimentos/] },
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
         name: 'Ledger Louis',
         short_name: 'Ledger',
         description: 'PWA mobile para Ledger Frontend',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#0a0b0b',
+        background_color: '#0a0b0b',
         display: 'standalone',
         scope: '/',
         start_url: '/',
@@ -39,6 +41,8 @@ export default defineConfig({
       }
     })
   ],
+  // dev: o app de investimentos roda no próprio Vite (npm run dev:investimentos, porta 5175)
+  server: { proxy: { '/investimentos': { target: 'http://localhost:5175', ws: true } } },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
