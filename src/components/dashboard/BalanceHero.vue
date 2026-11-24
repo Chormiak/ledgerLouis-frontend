@@ -161,8 +161,10 @@ const monthNet = computed(() => props.income - props.expense);
 }
 
 .balance-figure {
+  font-family: var(--font-display);
   font-size: var(--text-figure);
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: -0.045em;
   line-height: 1;
   overflow-wrap: anywhere;
 }

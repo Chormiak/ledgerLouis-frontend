@@ -7,15 +7,16 @@ import ExportMenu from '@/components/ui/ExportMenu.vue';
 import BalanceHero from '@/components/dashboard/BalanceHero.vue';
 import DashboardCard from '@/components/dashboard/DashboardCard.vue';
 import RecentTransactions from '@/components/dashboard/RecentTransactions.vue';
-import RevenueChart from '@/components/dashboard/RevenueChart.vue';
+import CashflowChart from '@/components/dashboard/CashflowChart.vue';
 import TagFilterChips from '@/components/dashboard/TagFilterChips.vue';
-import TagsDistributionCard from '@/components/dashboard/TagsDistributionCard.vue';
-import ExpenseInsightsCard from '@/components/dashboard/ExpenseInsightsCard.vue';
+import TagRanking from '@/components/dashboard/TagRanking.vue';
+import SpendingOutlook from '@/components/dashboard/SpendingOutlook.vue';
 import { useTransactionStore } from '@/stores/transactionStore';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useTagStore } from '@/stores/tagStore';
 import { exportTransactionsCsv, exportTransactionsPdf } from '@/utils/exportTransactions';
 import { useGsapScope } from '@/composables/useGsapScope';
+import { buildMonthlySeries } from '@/utils/monthlySeries';
 import { formatCurrency } from '@/utils/format';
 
 const SPARKLINE_MONTHS = 6;
@@ -36,42 +37,17 @@ const filteredTransactions = computed(() => {
   return transactionStore.transactions.filter((t) => tagStore.transactionHasTag(t.id, activeTagId));
 });
 
-// Chaves "YYYY-MM" dos últimos N meses (o último é o mês atual).
-const monthKeys = computed(() => {
-  const now = new Date();
-  return Array.from({ length: SPARKLINE_MONTHS }, (_, index) => {
-    const date = new Date(now.getFullYear(), now.getMonth() - (SPARKLINE_MONTHS - 1 - index), 1);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-  });
-});
-
-const monthly = computed(() => {
-  const buckets = new Map(monthKeys.value.map((key) => [key, { income: 0, expense: 0, count: 0 }]));
-  for (const transaction of filteredTransactions.value) {
-    const bucket = buckets.get(transaction.date.slice(0, 7));
-    if (!bucket) continue;
-    bucket.count += 1;
-    if (transaction.entryType === 'credit') bucket.income += transaction.amount;
-    else bucket.expense += transaction.amount;
-  }
-  return monthKeys.value.map((key) => buckets.get(key)!);
-});
+const monthly = computed(() => buildMonthlySeries(filteredTransactions.value, SPARKLINE_MONTHS));
 
 const current = computed(() => monthly.value[monthly.value.length - 1]!);
 const previous = computed(() => monthly.value[monthly.value.length - 2]!);
 
 const percentChange = (now: number, before: number) => (before === 0 ? null : ((now - before) / before) * 100);
 
-const accountValue = computed(() => transactionStore.accountValue);
+// O backend devolve o saldo como texto decimal ("142344.00").
+const accountValue = computed(() => Number(transactionStore.accountValue) || 0);
 
-const monthLabels = computed(() =>
-  monthKeys.value.map((key) => {
-    const [year, month] = key.split('-').map(Number);
-    return new Date(year!, month! - 1, 1).toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-  }),
-);
-
-const monthsNet = computed(() => monthly.value.map((m, i) => ({ label: monthLabels.value[i]!, net: m.income - m.expense })));
+const monthsNet = computed(() => monthly.value.map((m) => ({ label: m.label, net: m.net })));
 
 // Entrada em cascata dos blocos: o olhar desce do saldo para o detalhe.
 const root = ref<HTMLElement>();
@@ -95,9 +71,8 @@ const handleExport = (format: 'csv' | 'pdf') => {
     <div class="page-shell">
       <PageHeader
         class="stage"
-        eyebrow="Relatórios"
         title="Visão geral"
-        :description="`Saldo, entradas e saídas de ${companyStore.company.name || 'sua empresa'} em uma leitura rápida.`"
+        :description="`Saldo, entradas e saídas de ${companyStore.company.name || 'sua empresa'}.`"
       >
         <template #actions>
           <ExportMenu @export="handleExport" />
@@ -112,13 +87,14 @@ const handleExport = (format: 'csv' | 'pdf') => {
 
       <section class="overview stage" aria-label="Resumo financeiro">
         <BalanceHero
+          class="overview-balance"
           :balance="accountValue"
           :income="current.income"
           :expense="current.expense"
           :months="monthsNet"
         />
 
-        <div class="metric-stack card list-divided">
+        <div class="overview-metrics card list-divided">
           <DashboardCard
             title="Entradas do mês"
             :value="formatCurrency(current.income)"
@@ -139,7 +115,7 @@ const handleExport = (format: 'csv' | 'pdf') => {
             :series="monthly.map((m) => m.expense)"
           />
           <DashboardCard
-            title="Transações do mês"
+            title="Lançamentos do mês"
             :value="current.count.toString()"
             :icon="ReceiptText"
             :trend="percentChange(current.count, previous.count)"
@@ -149,12 +125,12 @@ const handleExport = (format: 'csv' | 'pdf') => {
         </div>
       </section>
 
-      <section class="charts-grid stage" aria-label="Gráficos financeiros">
-        <RevenueChart :transactions="filteredTransactions" />
-        <TagsDistributionCard :transactions="filteredTransactions" />
+      <section class="flow stage" aria-label="Fluxo de caixa e tags">
+        <CashflowChart class="flow-chart" :transactions="filteredTransactions" />
+        <TagRanking class="flow-ranking" :transactions="filteredTransactions" />
       </section>
 
-      <ExpenseInsightsCard class="stage" />
+      <SpendingOutlook class="stage" />
 
       <RecentTransactions class="stage" :transactions="filteredTransactions" />
     </div>
@@ -162,37 +138,52 @@ const handleExport = (format: 'csv' | 'pdf') => {
 </template>
 
 <style scoped>
+/* Grade de 12 colunas: cada faixa soma 12, sem celulas vazias. */
 .overview,
-.charts-grid {
+.flow {
   display: grid;
+  grid-auto-flow: dense;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--space-4);
 }
 
-/* Metricas empilhadas em um unico painel: lidas como um bloco, divididas por filetes. */
-.metric-stack {
+.overview > *,
+.flow > * {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+/* Metricas empilhadas em um unico painel, divididas por filetes. */
+.overview-metrics {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 0;
 }
 
-.metric-stack > :deep(*) {
+.overview-metrics > :deep(*) {
   flex: 1;
 }
 
-.metric-stack > :deep(* + *) {
+.overview-metrics > :deep(* + *) {
   border-top: 1px solid var(--color-border);
 }
 
 @media (min-width: 1100px) {
-  .overview {
-    grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr);
-    align-items: stretch;
+  .overview-balance {
+    grid-column: span 7;
   }
 
-  .charts-grid {
-    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
-    align-items: stretch;
+  .overview-metrics {
+    grid-column: span 5;
+  }
+
+  .flow-chart {
+    grid-column: span 8;
+  }
+
+  .flow-ranking {
+    grid-column: span 4;
   }
 }
 </style>

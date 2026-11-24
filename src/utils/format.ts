@@ -6,8 +6,13 @@ export const formatCurrency = (value: number) => currencyFormatter.format(value)
 export const formatSignedAmount = (amount: number, entryType: string) =>
   `${entryType === 'credit' ? '+' : '-'} ${formatCurrency(amount)}`;
 
-/** Eixo de gráficos: "R$ 1,5k". */
-export const formatCompactCurrency = (value: number) => `R$ ${Math.round(value / 100) / 10}k`;
+/** Eixo de gráficos: "R$ 1,5k" ou "R$ 1,2 mi". */
+export const formatCompactCurrency = (value: number) => {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `R$ ${(value / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} mi`;
+  if (abs >= 1_000) return `R$ ${(value / 1_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}k`;
+  return `R$ ${Math.round(value)}`;
+};
 
 export const formatDateTime = (value: string) => {
   const date = new Date(value);
@@ -22,14 +27,26 @@ export const formatIsoDate = (value: string | null | undefined) => {
   return `${day}/${month}/${year}`;
 };
 
-/** "Hoje, 14:30", "Ontem, 09:10" ou "12 de set." (com ano opcional). */
-export const formatRelativeDate = (value: string, withYear = false) => {
-  const date = new Date(value);
-  const diffDays = Math.floor(Math.abs(Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
-  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
-  if (diffDays === 0) return `Hoje, ${time}`;
-  if (diffDays === 1) return `Ontem, ${time}`;
+/** "YYYY-MM-DD" vira meia-noite no fuso local (new Date(iso) leria UTC e recuaria um dia no Brasil). */
+export const parseIsoDate = (value: string): Date => {
+  const match = ISO_DATE.exec(value);
+  return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])) : new Date(value);
+};
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+
+/** "Hoje", "Ontem" ou "12 set." (com ano opcional). Horario so quando o valor carrega hora. */
+export const formatRelativeDate = (value: string, withYear = false) => {
+  const date = parseIsoDate(value);
+  const diffDays = Math.round((startOfDay(new Date()) - startOfDay(date)) / 86_400_000);
+  const time = ISO_DATE.test(value)
+    ? ''
+    : `, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+  if (diffDays === 0) return `Hoje${time}`;
+  if (diffDays === 1) return `Ontem${time}`;
   return date.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
@@ -37,4 +54,12 @@ export const formatRelativeDate = (value: string, withYear = false) => {
   });
 };
 
-export const todayIso = () => new Date().toISOString().slice(0, 10);
+/** "12 set" para colunas de data de tabela. */
+export const formatShortDate = (value: string) =>
+  parseIsoDate(value).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace(' de ', ' ').replace('.', '');
+
+/** Hoje no calendario local, "YYYY-MM-DD". */
+export const todayIso = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};

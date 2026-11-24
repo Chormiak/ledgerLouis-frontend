@@ -1,14 +1,16 @@
+/**
+ * Tags usam tons dessaturados que convivem com o esmeralda da marca: nenhuma
+ * cor compete com os valores de entrada (verde) e saida (vermelho).
+ */
 const PALETTE = [
-  '#12b76a',
-  '#0ea5e9',
-  '#8b5cf6',
-  '#f59e0b',
-  '#ef4444',
-  '#ec4899',
-  '#14b8a6',
-  '#6366f1',
-  '#84cc16',
-  '#f97316',
+  '#5fb99a',
+  '#7ea9c9',
+  '#c9a96b',
+  '#b48da9',
+  '#9aa6b2',
+  '#c98f78',
+  '#93b878',
+  '#8896d0',
 ];
 
 export function colorForTag(id: string): string {

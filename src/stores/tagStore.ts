@@ -115,10 +115,14 @@ export const useTagStore = defineStore('tag', () => {
     }
   };
 
+  // O backend limita a taxa de requisicoes: busca em lotes pequenos, nao todas de uma vez.
+  const TAG_FETCH_BATCH = 6;
+
   const loadTagsForTransactions = async (transactionIds: string[]) => {
     const pending = transactionIds.filter((id) => !(id in transactionTagsMap));
-    if (pending.length === 0) return;
-    await Promise.all(pending.map((id) => fetchTagsForTransaction(id)));
+    for (let i = 0; i < pending.length; i += TAG_FETCH_BATCH) {
+      await Promise.all(pending.slice(i, i + TAG_FETCH_BATCH).map((id) => fetchTagsForTransaction(id)));
+    }
   };
 
   const attachTag = async (transactionId: string, tagId: string) => {
