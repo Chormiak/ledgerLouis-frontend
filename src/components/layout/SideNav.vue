@@ -62,8 +62,8 @@ const companyStore = useCompanyStore();
     padding: var(--space-5) 0;
     border-right: 1px solid var(--color-border);
     background: color-mix(in srgb, var(--color-bg) 70%, transparent);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 

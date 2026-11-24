@@ -271,7 +271,7 @@ const active = computed(() => series.value[activeIndex.value]!);
   width: min(22px, 40%);
   border-radius: 3px 3px 0 0;
   transition:
-    height 700ms var(--ease-out),
+    height 300ms var(--ease-out),
     opacity var(--duration-fast) ease;
 }
 

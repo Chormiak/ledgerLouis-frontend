@@ -71,13 +71,10 @@ const shortcuts = [
 
 .shortcut-arrow {
   color: var(--color-text-subtle);
-  transition:
-    transform var(--duration) var(--ease-out),
-    color var(--duration-fast) ease;
+  transition: color var(--duration-fast) ease;
 }
 
 .shortcut:hover .shortcut-arrow {
   color: var(--color-primary);
-  transform: translateX(3px);
 }
 </style>

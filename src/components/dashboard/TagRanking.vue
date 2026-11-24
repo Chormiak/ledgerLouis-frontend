@@ -136,6 +136,6 @@ const grandTotal = computed(() => ranking.value.reduce((sum, row) => sum + row.t
   height: 100%;
   border-radius: inherit;
   opacity: 0.9;
-  transition: width 700ms var(--ease-out);
+  transition: width 300ms var(--ease-out);
 }
 </style>

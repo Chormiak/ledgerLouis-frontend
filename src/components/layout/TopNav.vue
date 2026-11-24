@@ -107,8 +107,8 @@ const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform
   padding: 0 var(--space-4);
   border-bottom: 1px solid var(--color-border);
   background: color-mix(in srgb, var(--color-bg) 72%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 @media (min-width: 1024px) {

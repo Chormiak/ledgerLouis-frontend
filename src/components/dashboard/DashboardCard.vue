@@ -43,7 +43,7 @@ const trendIcon = computed(() => {
 </script>
 
 <template>
-  <article v-spotlight class="metric spotlight" :data-tone="tone">
+  <article class="metric" :data-tone="tone">
     <div class="metric-main">
       <p class="metric-title">
         <component :is="icon" :size="15" :stroke-width="1.75" />

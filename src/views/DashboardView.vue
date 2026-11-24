@@ -52,7 +52,7 @@ const monthsNet = computed(() => monthly.value.map((m) => ({ label: m.label, net
 // Entrada em cascata dos blocos: o olhar desce do saldo para o detalhe.
 const root = ref<HTMLElement>();
 useGsapScope(root, ({ gsap }) => {
-  gsap.from('.stage', { opacity: 0, y: 22, duration: 0.8, stagger: 0.09, ease: 'power3.out', clearProps: 'all' });
+  gsap.from('.stage', { opacity: 0, y: 8, duration: 0.4, stagger: 0.04, ease: 'power2.out', clearProps: 'all' });
 });
 
 const tagSuffix = computed(() => (activeTagName.value ? ` · ${activeTagName.value}` : ''));

@@ -49,7 +49,7 @@ const monthNet = computed(() => props.income - props.expense);
 </script>
 
 <template>
-  <section v-tilt="2.5" class="balance tilt" aria-label="Saldo da empresa">
+  <section class="balance" aria-label="Saldo da empresa">
     <header class="balance-head">
       <p>Saldo total{{ companyName ? `, ${companyName}` : '' }}</p>
       <span class="balance-month" :class="monthNet >= 0 ? 'is-up' : 'is-down'">
@@ -59,7 +59,7 @@ const monthNet = computed(() => props.income - props.expense);
     </header>
 
     <p class="balance-figure figure" :class="{ 'is-negative': balance < 0 }">
-      <AnimatedNumber :value="balance" :format="formatCurrency" :duration="1100" />
+      <AnimatedNumber :value="balance" :format="formatCurrency" :duration="600" />
     </p>
 
     <dl class="balance-split">
@@ -121,7 +121,7 @@ const monthNet = computed(() => props.income - props.expense);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-xl);
   background: var(--gradient-panel);
-  box-shadow: var(--shadow-md), var(--glow-primary);
+  box-shadow: var(--shadow-md);
 }
 
 @media (min-width: 768px) {
