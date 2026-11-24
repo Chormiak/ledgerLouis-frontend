@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { Building2, ChevronRight, Mail, Search } from 'lucide-vue-next';
+import { Building2, ChevronRight, Mail, Search, TrendingUp } from 'lucide-vue-next';
 import CompanyService from '@/services/companyService';
 import { useCompanyStore } from '@/stores/CompanyStore';
 import { useUserStore } from '@/stores/userStore';
@@ -69,6 +69,11 @@ const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform
           <kbd>{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
         </button>
 
+        <!-- app a parte (apps/investimentos), servido em /investimentos/ com o mesmo login; no desktop fica na sidebar -->
+        <a class="icon-button invest-link" href="/investimentos/" title="Investimentos" aria-label="Investimentos">
+          <TrendingUp :size="18" :stroke-width="1.75" />
+        </a>
+
         <RouterLink :to="{ name: 'invitations' }" class="icon-button" title="Convites" aria-label="Convites">
           <Mail :size="18" :stroke-width="1.75" />
           <span v-if="pendingInvitations > 0" class="icon-badge">{{ pendingInvitations }}</span>
@@ -85,6 +90,12 @@ const isMac = typeof navigator !== 'undefined' && /mac/i.test(navigator.platform
 </template>
 
 <style scoped>
+@media (min-width: 1024px) {
+  .invest-link {
+    display: none;
+  }
+}
+
 .topbar {
   position: fixed;
   inset: 0 0 auto;

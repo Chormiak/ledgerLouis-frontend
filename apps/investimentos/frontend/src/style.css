@@ -1,0 +1,54 @@
+@import 'tailwindcss';
+
+/* Identidade LedgerLouis: livro-razão à noite. Tinta azul-marinho, pauta fina, latão como destaque. */
+@theme {
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-raise: var(--raise);
+  --color-rule: var(--rule);
+  --color-paper: var(--paper);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-ai: var(--ai);
+  --color-est: var(--est);
+}
+
+:root {
+  /* Terminal escuro: fundo quase preto azulado, painéis um tom acima, ciano como único destaque. */
+  --ink: #05080d;
+  --panel: #0a1017;
+  --raise: #0f1720;
+  --rule: #18222e;
+  --paper: #d9e2ec;
+  --muted: #708096;
+  --accent: #3ccfdc;
+  --up: #2fcf8e;
+  --down: #f2566c;
+  --ai: #a197ff; /* interpretação da IA */
+  --est: #5aa8ff; /* estimativa */
+  color-scheme: dark;
+}
+
+
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

@@ -17,17 +17,18 @@ const companyStore = useCompanyStore();
     </RouterLink>
 
     <nav class="rail-nav">
-      <RouterLink
+      <component
+        :is="item.href ? 'a' : 'RouterLink'"
         v-for="item in mainNav"
         :key="item.name"
-        :to="{ name: item.name }"
+        v-bind="item.href ? { href: item.href } : { to: { name: item.name } }"
         class="rail-item"
         :class="{ 'is-active': isNavItemActive(item, route.name) }"
         :aria-label="item.label"
       >
         <component :is="item.icon" :size="20" :stroke-width="1.75" />
         <span class="rail-tip" aria-hidden="true">{{ item.label }}</span>
-      </RouterLink>
+      </component>
     </nav>
 
     <div v-if="companyStore.company.hasCompany" class="rail-actions">

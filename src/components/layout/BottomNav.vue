@@ -7,8 +7,10 @@ import { isNavItemActive, mainNav } from '@/router/navigation';
 const route = useRoute();
 const isMenuOpen = ref(false);
 
-const leftItems = computed(() => mainNav.slice(0, 2));
-const rightItems = computed(() => mainNav.slice(2));
+// Itens externos (ex.: Investimentos) ficam no topo no mobile, para a barra manter 4 destinos + o botao central.
+const routed = mainNav.filter((item) => !item.href);
+const leftItems = computed(() => routed.slice(0, 2));
+const rightItems = computed(() => routed.slice(2));
 
 watch(
   () => route.fullPath,

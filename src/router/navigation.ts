@@ -1,8 +1,10 @@
-import { Home, Layers, PieChart, Settings } from 'lucide-vue-next';
+import { Home, Layers, PieChart, Settings, TrendingUp } from 'lucide-vue-next';
 import type { Component } from 'vue';
 
 export interface NavItem {
   name: string;
+  /** App servido fora do roteador (ex.: /investimentos/): vira um <a> comum em vez de RouterLink. */
+  href?: string;
   label: string;
   icon: Component;
   /** Outras rotas que também deixam este item ativo. */
@@ -19,6 +21,7 @@ export const mainNav: NavItem[] = [
     matches: ['company', 'companyCreate', 'recurring', 'tags'],
   },
   { name: 'reports', label: 'Relatórios', icon: PieChart, matches: ['transactions'] },
+  { name: 'investimentos', href: '/investimentos/', label: 'Investimentos', icon: TrendingUp },
   { name: 'settings', label: 'Configurações', icon: Settings },
 ];
 
