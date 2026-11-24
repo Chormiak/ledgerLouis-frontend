@@ -63,7 +63,7 @@ async function send(text = input.value) {
       else if (e.type === 'text') live.text += e.text
       else if (e.type === 'tool') live.tools.push(e.name)
       else if (e.type === 'warning') live.warning = e.text
-      else if (e.type === 'done' && e.is_error) live.error = e.error ?? 'O Claude não conseguiu responder.'
+      else if (e.type === 'done' && e.is_error) live.error = e.error ?? 'O Gemini não conseguiu responder.'
       scroll()
     }, abort.signal)
   } catch (err) {
@@ -96,11 +96,11 @@ onBeforeUnmount(stop)
 </script>
 
 <template>
-  <section aria-label="Conversa com o Claude" class="flex h-full flex-col">
+  <section aria-label="Conversa com o Gemini" class="flex h-full flex-col">
     <header class="flex items-center justify-between gap-2 border-b border-rule px-4 py-3">
       <div class="flex items-center gap-2">
         <span class="h-2 w-2 rounded-full" :class="busy ? 'animate-pulse bg-accent' : 'bg-up'" aria-hidden="true" />
-        <h2 class="font-display text-lg">Claude</h2>
+        <h2 class="font-display text-lg">Gemini</h2>
         <span class="text-xs text-muted">{{ busy ? 'pensando…' : 'pronto' }}</span>
       </div>
       <div class="flex items-center gap-4">
@@ -112,7 +112,7 @@ onBeforeUnmount(stop)
     <div ref="list" v-auto-animate class="flex-1 space-y-4 overflow-y-auto px-4 py-4" aria-live="polite">
       <div v-if="!messages.length" class="space-y-3">
         <p class="text-sm text-muted">
-          Pergunte sobre o mercado, sua carteira ou o que está na tela. O Claude lê os dados do LedgerLouis, pode
+          Pergunte sobre o mercado, sua carteira ou o que está na tela. O Gemini lê os dados do LedgerLouis, pode
           abrir telas para você e sugerir mudanças, mas só você aplica.
         </p>
         <div class="flex flex-wrap gap-2">
@@ -125,7 +125,7 @@ onBeforeUnmount(stop)
       <article v-for="(m, i) in messages" :key="i" :class="m.role === 'user' ? 'ml-8' : 'mr-2'">
         <p v-if="m.role === 'user'" class="rounded-lg bg-raise px-3 py-2 text-sm text-paper">{{ m.text }}</p>
         <template v-else>
-          <p class="mb-1 text-xs text-ai">Claude, interpretação da IA</p>
+          <p class="mb-1 text-xs text-ai">Gemini, interpretação da IA</p>
           <ul v-if="m.tools.length" class="mb-2 flex flex-wrap gap-1">
             <li v-for="(t, j) in m.tools" :key="j" class="rounded border border-rule px-1.5 text-[11px] text-muted">{{ TOOL_LABEL[t] ?? t }}</li>
           </ul>
@@ -140,7 +140,7 @@ onBeforeUnmount(stop)
     <div class="space-y-3 border-t border-rule p-3">
       <PendingChanges />
       <form class="flex items-end gap-2" @submit.prevent="send()">
-        <label class="sr-only" for="chat-input">Mensagem para o Claude</label>
+        <label class="sr-only" for="chat-input">Mensagem para o Gemini</label>
         <textarea
           id="chat-input"
           v-model="input"

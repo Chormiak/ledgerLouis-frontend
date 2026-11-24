@@ -43,7 +43,7 @@ usePublishScreen(() => ({ view: 'proposal', proposal_id: props.id, period: p.val
     </header>
 
     <section class="mt-6 rounded border border-rule p-4" aria-labelledby="sum-title">
-      <h2 id="sum-title" class="mb-2 flex items-center gap-2 text-sm text-muted">Resumo do Claude <KindTag kind="ia" /></h2>
+      <h2 id="sum-title" class="mb-2 flex items-center gap-2 text-sm text-muted">Resumo do Gemini <KindTag kind="ia" /></h2>
       <p class="max-w-prose whitespace-pre-line">{{ p.summary }}</p>
       <p class="mt-3 text-xs text-muted">Proposta, não recomendação garantida: a decisão de cada item é sua. O LedgerLouis não executa ordens.</p>
     </section>

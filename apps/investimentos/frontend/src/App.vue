@@ -107,7 +107,7 @@ const tape = computed(() =>
         <RouterView />
       </main>
 
-      <!-- o painel do Claude fica fixo em telas largas; nas menores vira uma gaveta -->
+      <!-- o painel do Gemini fica fixo em telas largas; nas menores vira uma gaveta -->
       <aside
         class="fixed inset-0 z-30 bg-panel 2xl:sticky 2xl:inset-auto 2xl:top-[4.5rem] 2xl:z-auto 2xl:block 2xl:h-[calc(100vh-5.5rem)] 2xl:rounded-lg 2xl:border 2xl:border-rule"
         :class="chatOpen ? 'block' : 'hidden'"
@@ -126,7 +126,7 @@ const tape = computed(() =>
       class="fixed right-4 bottom-4 z-20 rounded-full bg-accent px-5 py-3 font-medium text-ink shadow-lg 2xl:hidden"
       @click="chatOpen = true"
     >
-      Perguntar ao Claude
+      Perguntar ao Gemini
     </button>
 
     <div
@@ -134,7 +134,7 @@ const tape = computed(() =>
       role="status"
       class="fixed bottom-20 left-1/2 z-40 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border border-accent/50 bg-raise px-4 py-2 text-sm"
     >
-      <span class="text-accent">O Claude abriu esta tela.</span> <span class="text-muted">{{ notice.reason }}</span>
+      <span class="text-accent">O Gemini abriu esta tela.</span> <span class="text-muted">{{ notice.reason }}</span>
     </div>
   </div>
 </template>

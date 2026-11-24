@@ -1,9 +1,11 @@
 import json
-from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+from google.genai import types
 
-FAKE = str(Path(__file__).parent.parent / "fixtures" / "fake_claude.py")
+from ledgerlouis.interfaces import chat as chat_mod
+
 J = {"content_type": "application/json"}
 
 
@@ -12,41 +14,66 @@ def events(response) -> list[dict]:
     return [json.loads(chunk.removeprefix("data: ")) for chunk in body.strip().split("\n\n")]
 
 
+def chunk(*parts):
+    return SimpleNamespace(candidates=[SimpleNamespace(content=SimpleNamespace(parts=list(parts)))])
+
+
+class FakeGemini:
+    """Gemini falso: 1ª volta pede get_portfolio; 2ª responde em texto."""
+
+    def __init__(self, **_):
+        self.calls = []
+        self.models = self
+
+    def generate_content_stream(self, model, contents, config):
+        self.calls.append(len(contents))
+        if not any(p.function_response for c in contents for p in c.parts):
+            yield chunk(types.Part(function_call=types.FunctionCall(name="get_portfolio", args={})))
+        else:
+            yield chunk(types.Part(text="Sua carteira "))
+            yield chunk(types.Part(text="está concentrada."))
+
+
 @pytest.fixture
-def fake(settings, tmp_path, monkeypatch):
-    settings.CLAUDE_BIN = FAKE
-    args = tmp_path / "args.json"
-    monkeypatch.setenv("FAKE_CLAUDE_ARGS", str(args))
-    return args
+def fake(settings, monkeypatch):
+    settings.GEMINI_API_KEY = "k"
+    called = []
+
+    async def call_tool(name, args):
+        called.append(name)
+        return {"result": {"total": 0}}
+
+    async def list_tools():
+        return []
+
+    monkeypatch.setattr(chat_mod.genai, "Client", FakeGemini)
+    monkeypatch.setattr(chat_mod, "_call_tool", call_tool)
+    monkeypatch.setattr(chat_mod, "_list_tools", list_tools)
+    chat_mod._histories.clear()
+    return called
 
 
-def test_chat_streams_text_tools_and_locks_down_claude(client, fake):
+def test_chat_streams_text_and_runs_tools(client, fake):
     r = client.post("/api/chat", {"message": "como está minha carteira?"}, **J)
     assert r["Content-Type"] == "text/event-stream"
     evs = events(r)
     assert evs[0]["type"] == "session"
     assert {"type": "tool", "name": "get_portfolio"} in evs
+    assert fake == ["get_portfolio"]
     assert "".join(e["text"] for e in evs if e["type"] == "text") == "Sua carteira está concentrada."
     assert evs[-1] == {"type": "done", "is_error": False, "error": None}
 
-    argv = json.loads(fake.read_text())
-    assert argv[argv.index("--tools") + 1] == ""  # sem Bash, Edit, Read...
-    assert argv[argv.index("--permission-mode") + 1] == "dontAsk"
-    assert argv[argv.index("--allowedTools") + 1] == "mcp__ledgerlouis"
-    assert "--strict-mcp-config" in argv and "--session-id" in argv
 
-
-def test_followup_resumes_same_session(client, fake):
+def test_followup_keeps_history(client, fake):
     sid = events(client.post("/api/chat", {"message": "oi"}, **J))[0]["session_id"]
     events(client.post("/api/chat", {"message": "e agora?", "session_id": sid}, **J))
-    argv = json.loads(fake.read_text())
-    assert argv[argv.index("--resume") + 1] == sid
+    assert len(chat_mod._histories[sid]) == 6  # 1ª volta: pergunta, ferramenta, resposta, texto; 2ª: pergunta, texto
 
 
-def test_missing_claude_is_a_clear_error(client, settings):
-    settings.CLAUDE_BIN = "/nao/existe/claude"
+def test_missing_key_is_a_clear_error(client, settings):
+    settings.GEMINI_API_KEY = ""
     evs = events(client.post("/api/chat", {"message": "oi"}, **J))
-    assert evs[-1]["is_error"] and "Claude Code não encontrado" in evs[-1]["error"]
+    assert evs[-1]["is_error"] and "GEMINI_API_KEY" in evs[-1]["error"]
 
 
 @pytest.mark.parametrize(

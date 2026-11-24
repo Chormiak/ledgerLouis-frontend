@@ -29,9 +29,9 @@ function describe(c: PendingChange): string {
 </script>
 
 <template>
-  <section v-if="changes.data.value?.length" v-auto-animate aria-label="Sugestões do Claude esperando você" class="space-y-2">
+  <section v-if="changes.data.value?.length" v-auto-animate aria-label="Sugestões do Gemini esperando você" class="space-y-2">
     <article v-for="c in changes.data.value" :key="c.id" class="rounded-lg border border-accent/40 bg-raise p-3 text-sm">
-      <p class="text-xs text-accent">Sugestão do Claude, {{ c.kind === 'holding' ? 'carteira' : 'perfil' }}</p>
+      <p class="text-xs text-accent">Sugestão do Gemini, {{ c.kind === 'holding' ? 'carteira' : 'perfil' }}</p>
       <p class="mt-1 text-paper">{{ describe(c) }}</p>
       <p class="mt-1 text-xs text-muted">{{ c.reason }}</p>
       <div class="mt-2 flex gap-2">

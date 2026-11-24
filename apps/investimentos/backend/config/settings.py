@@ -68,6 +68,6 @@ REST_FRAMEWORK = {
 
 BRAPI_TOKEN = env("BRAPI_TOKEN", default="")
 
-# Chat do dashboard: usa o Claude Code instalado e logado no PC (assinatura, sem chave de API)
-CLAUDE_BIN = env("CLAUDE_BIN", default="claude")
-CLAUDE_CHAT_MODEL = env("CLAUDE_CHAT_MODEL", default="")
+# Chat do dashboard: Gemini via API do Google (chave em https://aistudio.google.com/apikey)
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+GEMINI_CHAT_MODEL = env("GEMINI_CHAT_MODEL", default="gemini-3.5-flash")

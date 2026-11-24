@@ -60,9 +60,9 @@ O Claude usa a sua assinatura; não há custo de API. Ele não calcula indicador
 
 ### Chat dentro do dashboard
 
-O painel à direita (ou o botão "Perguntar ao Claude" em telas menores) conversa com o Claude Code rodando no seu computador. O backend chama `claude -p` em modo headless, só com as ferramentas do LedgerLouis liberadas: sem terminal, sem leitura de arquivos, sem internet.
+O painel à direita (ou o botão "Perguntar ao Gemini" em telas menores) conversa com o Gemini (API do Google). O backend chama o modelo e só entrega a ele as ferramentas do LedgerLouis: sem terminal, sem leitura de arquivos, sem internet.
 
-- Precisa do Claude Code instalado e logado (`claude` no PATH). Para outro caminho, use `CLAUDE_BIN` no `.env`; para escolher o modelo, `CLAUDE_CHAT_MODEL` (vazio usa o padrão).
+- Precisa de `GEMINI_API_KEY` no `.env` (chave em https://aistudio.google.com/apikey); para escolher o modelo, `GEMINI_CHAT_MODEL` (padrão `gemini-3.5-flash`). A API do Google pode cobrar conforme o uso.
 - O `runserver` precisa estar de pé. A conversa continua entre mensagens e fica salva neste navegador; "Nova conversa" recomeça.
 - O mesmo vale pelo terminal: com o dashboard aberto, o Claude Code na pasta do projeto também consegue abrir telas e deixar sugestões no painel.
 

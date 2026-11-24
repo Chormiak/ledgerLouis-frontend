@@ -49,7 +49,7 @@ const MISSING: Record<string, string> = { horizon_years: 'horizonte', risk_toler
 <template>
   <form class="grid gap-4 sm:grid-cols-3" @submit.prevent="save.mutate()">
     <p v-if="profile.missing.length" class="rounded border border-accent/50 px-3 py-2 text-sm sm:col-span-3">
-      Falta preencher: {{ profile.missing.map((m) => MISSING[m]).join(', ') }}. Sem isso o Claude pergunta antes de propor.
+      Falta preencher: {{ profile.missing.map((m) => MISSING[m]).join(', ') }}. Sem isso o Gemini pergunta antes de propor.
     </p>
     <label class="text-sm text-muted">
       Horizonte (anos)
@@ -73,7 +73,7 @@ const MISSING: Record<string, string> = { horizon_years: 'horizonte', risk_toler
       <input v-model="form.avoid" :class="field" />
     </label>
     <label class="text-sm text-muted sm:col-span-3">
-      Observações para o Claude
+      Observações para o Gemini
       <textarea v-model="form.notes" rows="2" :class="field" />
     </label>
     <fieldset class="grid gap-4 sm:col-span-3 sm:grid-cols-3">

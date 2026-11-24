@@ -17,7 +17,7 @@ usePublishScreen(() => ({ view: 'alerts', unseen: alerts.data.value?.filter((a) 
 <template>
   <ErrorBox :error="alerts.error.value" />
   <p class="max-w-prose text-sm text-muted">
-    Gatilhos simples, sem IA, rodam a cada <code class="num">sync_market</code>. Para uma explicação, peça ao Claude
+    Gatilhos simples, sem IA, rodam a cada <code class="num">sync_market</code>. Para uma explicação, peça ao Gemini
     o atalho <span class="text-paper">explicar_alertas</span>. Os limiares ficam no seu perfil, na Carteira.
   </p>
 

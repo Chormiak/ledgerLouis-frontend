@@ -1,23 +1,21 @@
-"""Chat do dashboard: roda o Claude Code (`claude -p`) no PC do Erick, pela assinatura dele, e repassa a resposta
-em streaming (SSE). O Claude deste chat só tem as ferramentas MCP do LedgerLouis: sem terminal, sem arquivos.
+"""Chat do dashboard: conversa com o Gemini (API do Google) e repassa a resposta em streaming (SSE).
+O Gemini só enxerga as ferramentas do servidor MCP do LedgerLouis (chamadas aqui dentro, sem subprocesso):
+sem terminal, sem arquivos.
 """
 
+import asyncio
 import json
-import subprocess
-import sys
-import threading
 import uuid
 from collections.abc import Iterator
-from pathlib import Path
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from google import genai
+from google.genai import types
 
-BACKEND_DIR = Path(__file__).resolve().parents[2]
-TIMEOUT_S = 300
 MAX_MESSAGE = 4000
-TOOL_PREFIX = "mcp__ledgerlouis__"
+MAX_ROUNDS = 8  # idas e voltas modelo <-> ferramentas por mensagem
 
 CHAT_RULES = """Você está no painel de chat do LedgerLouis, ao lado do dashboard do Erick. Responda em português,
 de forma curta e direta, em texto simples (sem tabelas). Siga as instruções do servidor MCP do LedgerLouis.
@@ -25,89 +23,81 @@ Quando falar de uma ação, grupo, proposta ou da carteira, use show_on_screen p
 Para mudar carteira ou perfil, use propose_holding_change / propose_profile_change e diga que a sugestão
 aparece como cartão para ele aplicar ou recusar: você nunca altera nada sozinho."""
 
-
-def mcp_config() -> str:
-    server = {
-        "command": sys.executable,
-        "args": ["-m", "ledgerlouis.interfaces.mcp_server"],
-        "env": {"PYTHONPATH": str(BACKEND_DIR)},
-    }
-    return json.dumps({"mcpServers": {"ledgerlouis": server}})
+# shortcut: histórico só em memória (some ao reiniciar o backend); guardar no banco se isso incomodar.
+_histories: dict[str, list[types.Content]] = {}
 
 
-def build_command(message: str, session_id: str, resume: bool) -> list[str]:
-    cmd = [
-        settings.CLAUDE_BIN, "-p", message,
-        "--output-format", "stream-json", "--verbose", "--include-partial-messages",
-        "--tools", "",  # nenhuma ferramenta interna (Bash, Edit, Read...): só o LedgerLouis
-        "--strict-mcp-config", "--mcp-config", mcp_config(),
-        "--allowedTools", "mcp__ledgerlouis",
-        "--permission-mode", "dontAsk",  # o que não estiver liberado acima é negado, sem perguntar
-        "--append-system-prompt", CHAT_RULES,
-        "--resume" if resume else "--session-id", session_id,
-    ]
-    if settings.CLAUDE_CHAT_MODEL:
-        cmd += ["--model", settings.CLAUDE_CHAT_MODEL]
-    return cmd
+def _mcp():
+    from ledgerlouis.interfaces.mcp_server import mcp  # importa tarde: o módulo chama django.setup()
+
+    return mcp
 
 
-def parse_line(line: str) -> list[dict]:
-    """Uma linha do stream-json -> eventos simples para o frontend."""
-    try:
-        ev = json.loads(line)
-    except json.JSONDecodeError:
-        return []
-    kind = ev.get("type")
-    if kind == "stream_event":
-        delta = ev.get("event", {}).get("delta", {})
-        return [{"type": "text", "text": delta["text"]}] if delta.get("type") == "text_delta" else []
-    if kind == "assistant":  # o texto já veio pelos deltas; daqui só as chamadas de ferramenta
-        return [
-            {"type": "tool", "name": b.get("name", "").removeprefix(TOOL_PREFIX)}
-            for b in ev.get("message", {}).get("content", [])
-            if b.get("type") == "tool_use"
+async def _list_tools() -> list[types.Tool]:
+    from fastmcp import Client
+
+    async with Client(_mcp()) as c:
+        decls = [
+            types.FunctionDeclaration(name=t.name, description=t.description, parameters_json_schema=t.input_schema)
+            for t in await c.list_tools()
         ]
-    if kind == "system" and ev.get("subtype") == "init":
-        servers = {s.get("name"): s.get("status") for s in ev.get("mcp_servers", [])}
-        if servers.get("ledgerlouis") not in ("connected", "pending"):
-            return [{"type": "warning", "text": "As ferramentas do LedgerLouis não conectaram; o Claude responde sem os seus dados."}]
-        return []
-    if kind == "result":
-        return [{"type": "done", "is_error": bool(ev.get("is_error")), "error": ev.get("result") if ev.get("is_error") else None}]
-    return []
+    return [types.Tool(function_declarations=decls)]
+
+
+async def _call_tool(name: str, args: dict) -> dict:
+    from fastmcp import Client
+
+    async with Client(_mcp()) as c:
+        r = await c.call_tool(name, args, raise_on_error=False)
+    if r.is_error:
+        return {"error": " ".join(getattr(b, "text", "") for b in r.content)}
+    return {"result": r.structured_content if r.structured_content is not None else r.data}
 
 
 def sse(event: dict) -> str:
     return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
-def run_chat(message: str, session_id: str, resume: bool) -> Iterator[str]:
+def run_chat(message: str, session_id: str) -> Iterator[str]:
     yield sse({"type": "session", "session_id": session_id})
-    try:
-        proc = subprocess.Popen(
-            build_command(message, session_id, resume),
-            cwd=BACKEND_DIR, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, bufsize=1,
-        )
-    except FileNotFoundError:
-        yield sse({"type": "done", "is_error": True, "error": "Claude Code não encontrado. Instale e faça login com `claude` no terminal."})
+    if not settings.GEMINI_API_KEY:
+        yield sse({"type": "done", "is_error": True, "error": "Defina GEMINI_API_KEY no .env do backend."})
         return
-    watchdog = threading.Timer(TIMEOUT_S, proc.kill)
-    watchdog.start()
-    finished = False
+    history = _histories.setdefault(session_id, [])
+    sent = len(history)
+    history.append(types.Content(role="user", parts=[types.Part(text=message)]))
     try:
-        for line in proc.stdout:
-            for ev in parse_line(line):
-                finished |= ev["type"] == "done"
-                yield sse(ev)
-        proc.wait()
-        if not finished:
-            err = (proc.stderr.read() or "").strip()[-500:] or f"o Claude Code saiu com código {proc.returncode}"
-            yield sse({"type": "done", "is_error": True, "error": err})
-    finally:
-        watchdog.cancel()
-        if proc.poll() is None:  # o navegador fechou a conexão no meio: não deixar o processo órfão
-            proc.kill()
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        config = types.GenerateContentConfig(
+            system_instruction=f"{_mcp().instructions}\n\n{CHAT_RULES}",
+            tools=asyncio.run(_list_tools()),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+        )
+        for _ in range(MAX_ROUNDS):
+            parts: list[types.Part] = []
+            for chunk in client.models.generate_content_stream(model=settings.GEMINI_CHAT_MODEL, contents=history, config=config):
+                for part in (chunk.candidates[0].content.parts or []) if chunk.candidates and chunk.candidates[0].content else []:
+                    parts.append(part)
+                    if part.text and not part.thought:
+                        yield sse({"type": "text", "text": part.text})
+            if not parts:
+                break
+            history.append(types.Content(role="model", parts=parts))
+            calls = [p.function_call for p in parts if p.function_call]
+            if not calls:
+                break
+            answers = []
+            for fc in calls:
+                yield sse({"type": "tool", "name": fc.name})
+                answers.append(types.Part.from_function_response(name=fc.name, response=asyncio.run(_call_tool(fc.name, dict(fc.args or {})))))
+            history.append(types.Content(role="user", parts=answers))
+        else:
+            yield sse({"type": "warning", "text": "Parei depois de muitas chamadas de ferramenta; peça de novo se faltou algo."})
+    except Exception as e:  # erro de rede, chave, cota...: o chat mostra em vez de quebrar o stream
+        del history[sent:]  # volta ao estado anterior para a próxima mensagem não herdar uma volta quebrada
+        yield sse({"type": "done", "is_error": True, "error": f"Gemini: {str(e)[:300]}"})
+        return
+    yield sse({"type": "done", "is_error": False, "error": None})
 
 
 @csrf_exempt  # sem cookie de sessão; a proteção é o JSON obrigatório + a checagem de origem abaixo
@@ -126,12 +116,11 @@ def chat(request):
     message = body.get("message") if isinstance(body, dict) else None
     if not isinstance(message, str) or not message.strip() or len(message) > MAX_MESSAGE:
         return JsonResponse({"error": f"mensagem vazia ou com mais de {MAX_MESSAGE} caracteres"}, status=400)
-    session_id, resume = body.get("session_id"), True
     try:
-        session_id = str(uuid.UUID(str(session_id)))
+        session_id = str(uuid.UUID(str(body.get("session_id"))))
     except ValueError:
-        session_id, resume = str(uuid.uuid4()), False
-    response = StreamingHttpResponse(run_chat(message.strip(), session_id, resume), content_type="text/event-stream")
+        session_id = str(uuid.uuid4())
+    response = StreamingHttpResponse(run_chat(message.strip(), session_id), content_type="text/event-stream")
     response["Cache-Control"] = "no-cache"
     response["X-Accel-Buffering"] = "no"
     return response

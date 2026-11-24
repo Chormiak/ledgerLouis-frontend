@@ -117,7 +117,7 @@ usePublishScreen(() => ({ view: 'portfolio', tickers: p.value?.positions.map((x)
 
   <section v-if="p" class="mt-12" aria-labelledby="profile-title">
     <h2 id="profile-title" class="font-display mb-1 text-xl font-medium">Seu perfil</h2>
-    <p class="mb-4 text-sm text-muted">O Claude lê isto antes de montar a proposta. Nada aqui é preenchido por ele.</p>
+    <p class="mb-4 text-sm text-muted">O Gemini lê isto antes de montar a proposta. Nada aqui é preenchido por ele.</p>
     <ProfileForm :profile="p.profile" />
   </section>
 </template>
