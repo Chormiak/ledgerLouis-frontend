@@ -21,6 +21,11 @@ usePublishScreen(() => ({ view: 'overview', tickers: list.value.slice(0, 60).map
 </script>
 
 <template>
+  <header class="mb-8 border-b border-rule pb-6">
+    <h1 class="font-display text-4xl font-semibold tracking-[-0.04em]">Visão geral</h1>
+    <p class="mt-2 text-muted">Cotações, juros e indicadores das ações acompanhadas.</p>
+  </header>
+
   <ErrorBox :error="assets.error.value ?? macro.error.value" />
 
   <MarketPulse :assets="list" />

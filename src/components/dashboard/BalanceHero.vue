@@ -52,10 +52,6 @@ const monthNet = computed(() => props.income - props.expense);
   <section class="balance" aria-label="Saldo da empresa">
     <header class="balance-head">
       <p>Saldo total{{ companyName ? `, ${companyName}` : '' }}</p>
-      <span class="balance-month" :class="monthNet >= 0 ? 'is-up' : 'is-down'">
-        <component :is="monthNet >= 0 ? ArrowUpRight : ArrowDownRight" :size="13" />
-        {{ formatCurrency(Math.abs(monthNet)) }} no mês
-      </span>
     </header>
 
     <p class="balance-figure figure" :class="{ 'is-negative': balance < 0 }">
@@ -64,12 +60,16 @@ const monthNet = computed(() => props.income - props.expense);
 
     <dl class="balance-split">
       <div>
-        <dt><i class="dot" style="background: var(--color-primary)" /> Entradas do mês</dt>
+        <dt>Entradas do mês</dt>
         <dd class="figure text-income">{{ formatCurrency(income) }}</dd>
       </div>
       <div>
-        <dt><i class="dot" style="background: var(--color-danger)" /> Saídas do mês</dt>
+        <dt>Saídas do mês</dt>
         <dd class="figure text-expense">{{ formatCurrency(expense) }}</dd>
+      </div>
+      <div class="balance-result">
+        <dt>Resultado do mês</dt>
+        <dd class="figure" :class="monthNet >= 0 ? 'text-income' : 'text-expense'">{{ formatCurrency(monthNet) }}</dd>
       </div>
     </dl>
 
@@ -140,26 +140,6 @@ const monthNet = computed(() => props.income - props.expense);
   color: var(--color-text-muted);
 }
 
-.balance-month {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px 10px 3px 7px;
-  border-radius: var(--radius-full);
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.balance-month.is-up {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-strong);
-}
-
-.balance-month.is-down {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
-}
-
 .balance-figure {
   font-family: var(--font-display);
   font-size: var(--text-figure);
@@ -174,23 +154,35 @@ const monthNet = computed(() => props.income - props.expense);
 }
 
 .balance-split {
+  border-top: 1px solid var(--color-border);
+}
+
+.balance-split > div {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-10);
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .balance-split dt {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 2px;
-  font-size: var(--text-xs);
-  color: var(--color-text-subtle);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .balance-split dd {
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   font-weight: 500;
+}
+
+/* A última linha fecha o extrato: filete duplo, como na contabilidade. */
+.balance-result {
+  border-bottom: 3px double var(--color-border-strong) !important;
+}
+
+.balance-result dt {
+  color: var(--color-text);
 }
 
 .balance-chart {

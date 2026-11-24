@@ -120,21 +120,16 @@ const trendIcon = computed(() => {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 1px 7px 1px 5px;
-  border-radius: var(--radius-full);
   font-family: var(--font-mono);
   font-size: 11px;
-  background: var(--color-surface-3);
   color: var(--color-text-muted);
 }
 
 .trend[data-tone='good'] {
-  background: var(--color-primary-soft);
   color: var(--color-primary-strong);
 }
 
 .trend[data-tone='bad'] {
-  background: var(--color-danger-soft);
   color: var(--color-danger);
 }
 

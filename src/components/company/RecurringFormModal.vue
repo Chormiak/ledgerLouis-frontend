@@ -3,6 +3,8 @@ import { computed, reactive, ref, watch } from 'vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import BaseButton from '@/components/ui/BaseButton.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
+import AnimatedNumber from '@/components/ui/AnimatedNumber.vue';
+import { CalendarDays, Hash, Type, Wallet } from 'lucide-vue-next';
 import { useRecurringTransactionStore } from '@/stores/recurringTransactionStore';
 import type { RecurringEntryType, RecurringFrequency } from '@/services/recurringTransactionService';
 import { useToast } from '@/composables/useToast';
@@ -70,9 +72,12 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <BaseModal v-model:open="open" title="Novo lançamento recorrente">
-    <form id="recurring-form" class="form" @submit.prevent="handleSubmit">
-      <div class="segmented segmented--block" role="radiogroup" aria-label="Tipo">
+  <BaseModal v-model:open="open" title="Novo lançamento recorrente" size="sm">
+    <form id="recurring-form" class="form form--lg" :data-type="form.entryType" @submit.prevent="handleSubmit">
+      <p class="form-lead">Lançado sozinho na data certa: aluguel, salários, assinaturas.</p>
+
+      <div class="segmented segmented--block segmented--slide" :style="{ '--idx': form.entryType === 'credit' ? 1 : 0 }" role="radiogroup" aria-label="Tipo">
+        <span class="segmented-thumb" aria-hidden="true" />
         <button
           type="button"
           role="radio"
@@ -97,12 +102,13 @@ const handleSubmit = async () => {
         </button>
       </div>
 
-      <BaseInput v-model="form.description" label="Descrição" placeholder="Ex: Aluguel, salários, assinatura..." />
+      <BaseInput v-model="form.description" label="Descrição" :icon="Type" placeholder="Ex: Aluguel, salários, assinatura..." />
 
       <div class="field-grid">
         <BaseInput
           v-model="form.unitValue"
           label="Valor unitário (R$)"
+          :icon="Wallet"
           type="number"
           step="0.01"
           min="0"
@@ -112,6 +118,7 @@ const handleSubmit = async () => {
         <BaseInput
           v-model="form.quantity"
           label="Quantidade"
+          :icon="Hash"
           type="number"
           step="1"
           min="1"
@@ -129,13 +136,13 @@ const handleSubmit = async () => {
       </div>
 
       <div class="field-grid">
-        <BaseInput v-model="form.startDate" label="Início" type="date" />
-        <BaseInput v-model="form.endDate" label="Término (opcional)" type="date" />
+        <BaseInput v-model="form.startDate" label="Início" :icon="CalendarDays" type="date" />
+        <BaseInput v-model="form.endDate" label="Término (opcional)" :icon="CalendarDays" type="date" />
       </div>
 
-      <div class="total-preview" :data-tone="form.entryType">
+      <div class="total-preview">
         <span>Total por ocorrência</span>
-        <strong class="tabular">{{ formatCurrency(total) }}</strong>
+        <strong class="tabular"><AnimatedNumber :value="total" :format="formatCurrency" :duration="380" /></strong>
       </div>
 
       <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
@@ -149,26 +156,23 @@ const handleSubmit = async () => {
 </template>
 
 <style scoped>
+/* Cor e valor acompanham o tipo escolhido (--tone vem do .form--lg). */
 .total-preview {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  background: var(--color-primary-soft);
-  color: var(--color-primary-strong);
+  background: color-mix(in srgb, var(--tone) 10%, transparent);
+  color: var(--tone-strong);
   font-size: var(--text-sm);
   font-weight: 600;
 }
 
-.total-preview[data-tone='debit'] {
-  background: var(--color-danger-soft);
-  color: var(--color-danger);
-}
-
 .total-preview strong {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
+  letter-spacing: -0.03em;
 }
 </style>

@@ -269,7 +269,7 @@ const active = computed(() => series.value[activeIndex.value]!);
 
 .bar {
   width: min(22px, 40%);
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px 4px 0 0;
   transition:
     height 300ms var(--ease-out),
     opacity var(--duration-fast) ease;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ArrowDownRight, ArrowUpRight } from 'lucide-vue-next';
+import { ArrowDownRight, ArrowUpRight, CalendarDays, Type } from 'lucide-vue-next';
 import BaseButton from '@/components/ui/BaseButton.vue';
 import BaseInput from '@/components/ui/BaseInput.vue';
 import TagPicker from '@/components/forms/TagPicker.vue';
@@ -73,18 +73,22 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="page">
-    <div class="page-shell page-shell--form">
-      <div class="card entry-card" :data-type="entryType">
-        <header class="entry-header">
+  <div class="page entry-page" :data-type="entryType">
+    <div class="page-shell page-shell--entry">
+      <div class="card form-card entry-card" :data-type="entryType">
+        <header class="form-head">
           <span class="icon-tile" :class="{ 'icon-tile--danger': !isIncome }">
             <ArrowUpRight v-if="isIncome" :size="20" />
             <ArrowDownRight v-else :size="20" />
           </span>
-          <h1>{{ copy.title }}</h1>
+          <div>
+            <h1>{{ copy.title }}</h1>
+            <p class="form-lead">Informe o valor, a data e, se quiser, as tags.</p>
+          </div>
         </header>
 
-        <nav class="segmented segmented--block" aria-label="Tipo de lançamento">
+        <nav class="segmented segmented--block segmented--slide" :style="{ '--idx': isIncome ? 1 : 0 }" aria-label="Tipo de lançamento">
+          <span class="segmented-thumb" aria-hidden="true" />
           <RouterLink
             :to="{ name: 'addExpense' }"
             replace
@@ -105,7 +109,7 @@ const handleSubmit = async () => {
           </RouterLink>
         </nav>
 
-        <form class="form" novalidate @submit.prevent="handleSubmit">
+        <form class="form form--lg" novalidate @submit.prevent="handleSubmit">
           <div class="amount-field" :class="{ 'is-invalid': errors.amount }">
             <label for="amount" class="field-label">Valor</label>
             <div class="amount-input">
@@ -127,17 +131,18 @@ const handleSubmit = async () => {
           <BaseInput
             v-model="form.description"
             label="Descrição"
+            :icon="Type"
             :placeholder="copy.placeholder"
             :error="errors.description"
           />
 
-          <BaseInput v-model="form.date" label="Data" type="date" required />
+          <BaseInput v-model="form.date" label="Data" :icon="CalendarDays" type="date" required />
 
           <TagPicker v-model="selectedTagIds" />
 
           <div class="form-actions">
-            <BaseButton variant="secondary" size="lg" @click="router.back()">Cancelar</BaseButton>
-            <BaseButton type="submit" size="lg" :variant="isIncome ? 'primary' : 'danger'" :loading="saving">
+            <BaseButton variant="secondary" @click="router.back()">Cancelar</BaseButton>
+            <BaseButton type="submit" :variant="isIncome ? 'primary' : 'danger'" :loading="saving">
               Salvar {{ isIncome ? 'entrada' : 'saída' }}
             </BaseButton>
           </div>
@@ -148,51 +153,20 @@ const handleSubmit = async () => {
 </template>
 
 <style scoped>
-.entry-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-
-/* Faixa colorida no topo indica o tipo do lançamento. */
-.entry-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: var(--gradient-primary);
-}
-
-.entry-card[data-type='debit']::before {
-  background: var(--gradient-danger);
-}
-
-.entry-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.entry-header h1 {
-  font-size: var(--text-xl);
-  font-weight: 600;
-}
-
 .amount-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+/* Valor com a mesma linha dos outros campos; a linha de foco cresce do centro, na cor do tipo. */
 .amount-input {
   display: flex;
   align-items: baseline;
-  gap: var(--space-3);
-  padding: var(--space-2) 2px 0;
+  gap: var(--space-2);
+  padding: 2px 2px 0;
   border-bottom: 1px solid var(--color-border-strong);
-  background-image: linear-gradient(var(--color-primary), var(--color-primary));
+  background-image: linear-gradient(var(--tone), var(--tone));
   background-repeat: no-repeat;
   background-position: 50% 100%;
   background-size: 0% 2px;
@@ -225,28 +199,69 @@ const handleSubmit = async () => {
   background: transparent;
   outline: none;
   font-family: var(--font-mono);
-  font-size: 2.25rem;
+  font-size: 1.625rem;
   font-weight: 400;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
+  color: var(--tone-strong);
+  caret-color: var(--tone);
+}
+
+.amount-input input::-webkit-outer-spin-button,
+.amount-input input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.amount-input input[type='number'] {
+  appearance: textfield;
 }
 
 .amount-input input::placeholder {
   color: var(--color-border-strong);
 }
 
-.entry-card[data-type='debit'] .amount-input input {
-  color: var(--color-danger);
-}
-
-.entry-card[data-type='credit'] .amount-input input {
-  color: var(--color-primary-strong);
-}
-
 .form-actions {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: 1fr 1.6fr;
   gap: var(--space-3);
-  padding-top: var(--space-2);
+  padding-top: var(--space-1);
+}
+
+/* Brilho no topo da tela, na cor do tipo: duas camadas que trocam de opacidade. */
+.entry-page {
+  position: relative;
+}
+
+.entry-page::before,
+.entry-page::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 520px;
+  pointer-events: none;
+  transition: opacity 700ms var(--ease-out);
+}
+
+.entry-page::before {
+  background: radial-gradient(55% 60% at 50% 0%, rgba(52, 181, 133, 0.15), transparent 70%);
+}
+
+.entry-page::after {
+  background: radial-gradient(55% 60% at 50% 0%, rgba(238, 107, 120, 0.14), transparent 70%);
+  opacity: 0;
+}
+
+.entry-page[data-type='debit']::before {
+  opacity: 0;
+}
+
+.entry-page[data-type='debit']::after {
+  opacity: 1;
+}
+
+.entry-page .page-shell {
+  position: relative;
+  z-index: 1;
 }
 </style>

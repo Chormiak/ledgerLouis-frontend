@@ -35,7 +35,7 @@ function colorFor(change: number | null): { fill: string; text: string } {
           const t = Math.max(-1, Math.min(1, change / 3))
           const base = hexToRgb(css('--panel'))
           const end = hexToRgb(t >= 0 ? css('--up') : css('--down'))
-          return base.map((b, i) => Math.round(b + (end[i] - b) * (0.25 + 0.75 * Math.abs(t))))
+          return base.map((b, i) => Math.round(b + (end[i] - b) * (0.2 + 0.55 * Math.abs(t))))
         })()
   // texto claro ou escuro conforme a luminância do bloco, para manter contraste nos dois temas
   const lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255

@@ -133,7 +133,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page flat-ui">
     <div class="page-shell company-shell">
       <CompanyHeader :name="companyName" :role="companyStore.company.role" @leave="leaveCompany" />
 

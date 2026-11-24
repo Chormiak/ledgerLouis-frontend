@@ -74,7 +74,11 @@ const grandTotal = computed(() => ranking.value.reduce((sum, row) => sum + row.t
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+}
+
+.row + .row {
+  border-top: 1px solid var(--color-border);
 }
 
 .row {

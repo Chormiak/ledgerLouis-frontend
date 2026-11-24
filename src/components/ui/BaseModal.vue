@@ -3,7 +3,7 @@ import { onBeforeUnmount, watch } from 'vue';
 import { X } from 'lucide-vue-next';
 import BaseButton from './BaseButton.vue';
 
-const props = withDefaults(defineProps<{ title: string; size?: 'sm' | 'md' }>(), { size: 'md' });
+const props = withDefaults(defineProps<{ title: string; size?: 'sm' | 'md' | 'lg' }>(), { size: 'md' });
 
 const open = defineModel<boolean>('open', { default: false });
 
@@ -38,7 +38,7 @@ onBeforeUnmount(() => {
       <div v-if="open" class="modal-backdrop" @click.self="close">
         <div
           class="modal"
-          :class="{ 'modal--sm': props.size === 'sm' }"
+          :class="{ 'modal--sm': props.size === 'sm', 'modal--lg': props.size === 'lg' }"
           role="dialog"
           aria-modal="true"
           :aria-label="title"
@@ -67,6 +67,12 @@ onBeforeUnmount(() => {
 @media (min-width: 640px) {
   .modal--sm {
     max-width: 420px;
+  }
+}
+
+@media (min-width: 640px) {
+  .modal--lg {
+    max-width: 680px;
   }
 }
 </style>

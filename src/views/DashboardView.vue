@@ -67,7 +67,7 @@ const handleExport = (format: 'csv' | 'pdf') => {
 </script>
 
 <template>
-  <div ref="root" class="page">
+  <div ref="root" class="page flat-ui">
     <div class="page-shell">
       <PageHeader
         class="stage"
