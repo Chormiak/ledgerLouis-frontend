@@ -140,7 +140,7 @@ export default class CompanyService {
   }
 
   async listUserInvitations(): Promise<{ items: UserInvitationDto[] }> {
-    const response = await axiosInstance.get<{ items: UserInvitationDto[] }>('/invitations/me');
+    const response = await axiosInstance.get<{ items: UserInvitationDto[] }>('/invitations');
     return response.data;
   }
 
@@ -150,7 +150,7 @@ export default class CompanyService {
   }
 
   async acceptInvitationById(invitationId: string): Promise<{ companyId: string; userId: string; role: CompanyRole }> {
-    const response = await axiosInstance.post(`/invitations/id/${invitationId}/accept`);
+    const response = await axiosInstance.post(`/invitations/${invitationId}/accept`);
     return response.data;
   }
 }
